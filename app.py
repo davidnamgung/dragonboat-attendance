@@ -155,7 +155,7 @@ st.markdown("""
         }
     }
 </style>
-""")
+""", unsafe_allow_html=True)
 
 # --- 2. TIME GATE & DYNAMIC DATES ---
 tz = pytz.timezone("America/Toronto")

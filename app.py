@@ -261,12 +261,13 @@ def render_roster_card(ts_str, status_filter=['Active', 'Attended']):
     </div>
     """, unsafe_allow_html=True)
     
-    if not df_waitlist.empty and status_filter == ['Active']: 
+    # Shows the waitlist as long as 'Active' is one of the requested statuses
+    if not df_waitlist.empty and 'Active' in status_filter: 
         wl = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
         wl_names = wl['Name'].tolist()
         if wl_names:
             st.markdown("**Waitlist:**")
-            st.markdown(f"<div class='paddler-list'>1. " + "<br>".join([f"{i+1}. {n}" for i, n in enumerate(wl_names)]) + "</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='paddler-list'>" + "<br>".join([f"{i+1}. {n}" for i, n in enumerate(wl_names)]) + "</div>", unsafe_allow_html=True)
 
 
 # --- 5. PAGE 1: CURRENT LINEUPS ---
@@ -446,7 +447,8 @@ elif st.session_state.page == "Admin":
             for idx, (ts_str, ts_dt) in enumerate(TIMESLOTS.items()):
                 target_col = col1 if idx == 0 else col2
                 with target_col:
-                    st.markdown(f"#### {ts_str.split(',')[0]} Practice")
+                    # Renders the full string instead of truncating at the comma
+                    st.markdown(f"#### {ts_str}")
                     render_admin_form(ts_str)
             
             if historical_dates:

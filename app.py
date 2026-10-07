@@ -175,7 +175,7 @@ elif 1 <= now.weekday() <= 4:
         is_open = True
 
 # --- 3. DATABASE CONNECTION & CACHING ---
-@st.cache_resource
+@st.cache_data(ttl=120)
 def get_google_client():
     scope = ['https://www.googleapis.com/auth/spreadsheets']
     creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)

@@ -339,7 +339,7 @@ elif st.session_state.page == "Analytics":
             st.info("Not enough data yet. Complete a few practices to see trends!")
 
 # --- NEW PAGE: TEAM RESOURCES ---
-elif st.session_state.page == "Resources":
+elif st.session_state.page == "Resources (Unfinished)":
     st.markdown('<h1 class="main-title">Team Resources</h1>', unsafe_allow_html=True)
     st.divider()
     
@@ -359,7 +359,7 @@ elif st.session_state.page == "Resources":
     st.divider()
     st.info("Additional resources and forms will be populated here as the season progresses.")
 
-    
+
 # --- 7. PAGE 3: ADMIN DASHBOARD (FRAGMENTED) ---
 elif st.session_state.page == "Admin":
     if not st.session_state.admin_authenticated:

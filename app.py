@@ -175,7 +175,7 @@ elif 1 <= now.weekday() <= 4:
         is_open = True
 
 # --- 3. DATABASE CONNECTION & CACHING ---
-@st.cache_data(ttl=60)
+@st.cache_resource
 def get_google_client():
     scope = ['https://www.googleapis.com/auth/spreadsheets']
     creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
@@ -193,25 +193,12 @@ waitlist_ws = sheet.worksheet("Waitlist")
 def load_roster():
     return pd.DataFrame(roster_ws.get_all_records())
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=60)
 def load_live_data():
     return pd.DataFrame(signups_ws.get_all_records()), pd.DataFrame(waitlist_ws.get_all_records())
 
 df_roster = load_roster()
 df_signups, df_waitlist = load_live_data()
-
-if 'Gender' not in df_roster.columns:
-    df_roster['Gender'] = 'Unknown'
-else:
-    df_roster['Gender'] = df_roster['Gender'].replace(r'^\s*$', 'Unknown', regex=True).fillna('Unknown')
-    df_roster['Gender'] = df_roster['Gender'].replace({'Male': 'Open', 'Female': 'Women', 'M': 'Open', 'F': 'Women'})
-
-historical_dates = []
-if not df_signups.empty:
-    all_dates = df_signups['Practice Date'].unique().tolist()
-    historical_dates = [d for d in all_dates if d not in TIMESLOTS.keys()]
-    historical_dates.reverse() 
-
 # --- 4. SESSION STATE & SIDEBAR ROUTING ---
 if 'page' not in st.session_state:
     st.session_state.page = "Sign Up"

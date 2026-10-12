@@ -678,24 +678,77 @@ elif st.session_state.page == "Admin":
 
             st.divider()
             
-            st.markdown("### Remove Paddler")
-            st.markdown("Select a paddler to permanently remove them from the active roster.")
+            st.markdown("### Edit or Remove Paddler")
+            st.markdown("Select a paddler to update their information or permanently remove them from the active roster.")
             
             all_roster_names = sorted(df_roster['Name'].tolist()) if not df_roster.empty else []
-            remove_name = st.selectbox("Select Paddler to Remove", all_roster_names, index=None, placeholder="Search for a name...")
+            edit_name = st.selectbox("Select Paddler to Edit/Remove", all_roster_names, index=None, placeholder="Search for a name...")
             
-            if remove_name:
-                with st.popover(f"🗑️ Remove {remove_name}", use_container_width=True):
-                    st.error(f"**Warning:** This will permanently delete **{remove_name}** from the roster database and instantly wipe out any active sign-ups or waitlist queue positions they currently hold. This cannot be undone.")
-                    if st.button("Confirm Permanent Removal", key=f"confirm_remove_{remove_name}"):
-                        # 1. Delete from main roster
-                        supabase.table("roster").delete().eq("Name", remove_name).execute()
+            if edit_name:
+                # Pre-fill the current user's data
+                user_data = df_roster[df_roster['Name'] == edit_name].iloc[0]
+                
+                with st.form(key=f"edit_form_{edit_name}"):
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        upd_name = st.text_input("Full Name", value=user_data['Name'])
                         
-                        # 2. Wipe their ghost records to prevent UI bugs
-                        supabase.table("signups").delete().eq("Name", remove_name).execute()
-                        supabase.table("waitlist").delete().eq("Name", remove_name).execute()
+                        genders = ["Open", "Women", "Unknown"]
+                        curr_gender = user_data['Gender'] if user_data['Gender'] in genders else "Unknown"
+                        upd_gender = st.selectbox("Gender", genders, index=genders.index(curr_gender))
                         
-                        log_action("Roster Removal", f"{remove_name} was permanently removed from the system.")
+                    with c2:
+                        sides = ["Left", "Right", "Ambidextrous", "Unknown"]
+                        curr_side = user_data.get('True Side', 'Unknown')
+                        curr_side = curr_side if curr_side in sides else "Unknown"
+                        upd_side = st.selectbox("True Side", sides, index=sides.index(curr_side))
+                        
+                        mems = [
+                            "Fall ONLY (without circuit)", 
+                            "BOTH semesters (with circuit)", 
+                            "Winter ONLY (without circuit)", 
+                            "BOTH semesters (without circuit)",
+                            "Unknown"
+                        ]
+                        curr_mem = user_data.get('Membership', 'Unknown')
+                        curr_mem = curr_mem if curr_mem in mems else "Unknown"
+                        upd_mem = st.selectbox("Membership Tier", mems, index=mems.index(curr_mem))
+                        
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    
+                    if st.form_submit_button("💾 Save Changes", use_container_width=True):
+                        if upd_name.strip() == "":
+                            st.error("Name cannot be blank.")
+                        else:
+                            # 1. Update main roster table
+                            supabase.table("roster").update({
+                                "Name": upd_name.strip(),
+                                "True Side": upd_side,
+                                "Gender": upd_gender,
+                                "Membership": upd_mem
+                            }).eq("Name", edit_name).execute()
+                            
+                            # 2. If the name was changed, cascade it to prevent ghost records
+                            if upd_name.strip() != edit_name:
+                                supabase.table("signups").update({"Name": upd_name.strip()}).eq("Name", edit_name).execute()
+                                supabase.table("waitlist").update({"Name": upd_name.strip()}).eq("Name", edit_name).execute()
+                            
+                            log_action("Roster Updated", f"Admin updated profile for {edit_name}")
+                            load_roster.clear()
+                            load_live_data.clear()
+                            load_audit_log.clear()
+                            st.success(f"Profile updated for {upd_name.strip()}!")
+                            st.rerun()
+
+                # Keep the permanent removal popover outside the form so buttons don't conflict
+                with st.popover(f"🗑️ Permanently Remove {edit_name}", use_container_width=True):
+                    st.error(f"**Warning:** This will permanently delete **{edit_name}** from the roster database and instantly wipe out any active sign-ups or waitlist queue positions they currently hold. This cannot be undone.")
+                    if st.button("Confirm Permanent Removal", key=f"confirm_remove_{edit_name}"):
+                        supabase.table("roster").delete().eq("Name", edit_name).execute()
+                        supabase.table("signups").delete().eq("Name", edit_name).execute()
+                        supabase.table("waitlist").delete().eq("Name", edit_name).execute()
+                        
+                        log_action("Roster Removal", f"{edit_name} was permanently removed from the system.")
                         load_roster.clear()
                         load_live_data.clear()
                         load_audit_log.clear()

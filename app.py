@@ -437,38 +437,38 @@ elif st.session_state.page == "Resources":
         with st.container(border=True):
             st.markdown("#### 🚇 TRANSIT Guide")
             st.caption("How to get to Canal Fitness via Bus and Metro")
-            st.link_button("View Route Map", "https://maps.google.com", use_container_width=True)
+            st.link_button("View Route Map", "https://docs.google.com/document/d/1ip7_Wmi4wuVdmcIbPUp993xwF7i3KOuwKcSp0Wl_yx8/edit?usp=sharing", use_container_width=True)
             
         with st.container(border=True):
             st.markdown("#### ⏱️ DBZ Racing History")
             st.caption("List of DBZ Races with the times and rankings")
-            st.link_button("View Rankings", "https://docs.google.com/spreadsheets", use_container_width=True)
+            st.link_button("View Rankings", "https://docs.google.com/spreadsheets/d/1I4GCgein1PvvQIoD1g4VcViRa6WTIgu1HAwT-JJtNV8/edit?usp=sharing", use_container_width=True)
             
         with st.container(border=True):
             st.markdown("#### 🩹 INJURY PREVENTION")
             st.caption("Prevent injuries during the year.")
-            st.link_button("Read Guidelines", "https://docs.google.com/document", use_container_width=True)
+            st.link_button("Read Guidelines", "https://docs.google.com/document/d/1VjugbUaSLyP1ChlYMlROkeLu9mJ1FXuyizIRI8bc8-A/edit?usp=sharing", use_container_width=True)
 
     with col2:
         with st.container(border=True):
             st.markdown("#### 🐉 GUIDE Dragon Boat 101")
             st.caption("A guide stating the different teams in Montreal, competitions and our club.")
-            st.link_button("Read Guide", "https://docs.google.com/document", use_container_width=True)
+            st.link_button("Read Guide", "https://docs.google.com/document/d/1aECu-CS_SJqLzacokfgaGeppBZmYdOYQyNL_TyNtCtk/edit?usp=sharing", use_container_width=True)
             
         with st.container(border=True):
             st.markdown("#### 📜 DBZ HISTORY")
             st.caption("Documented history of our club.")
-            st.link_button("Read History", "https://docs.google.com/document", use_container_width=True)
+            st.link_button("Read History", "https://docs.google.com/document/d/1OmqWDTVmkPXhYEDlX2H2jxcSyBEvUNy4hFscLRg6ah0/edit?usp=sharing", use_container_width=True)
             
         with st.container(border=True):
             st.markdown("#### 🏆 Competition Prep")
             st.caption("Preparation docs ahead of any competitions")
-            st.link_button("View Checklists", "https://docs.google.com/document", use_container_width=True)
+            st.link_button("View Checklists", "https://docs.google.com/document/d/1P-CBhKYLZ1EYMQgBo90BJFmbPkWR780hu3OnCRb_qAM/edit?usp=sharing", use_container_width=True)
             
         with st.container(border=True):
             st.markdown("#### 🎥 YouTube Channel")
             st.caption("Check out our races!")
-            st.link_button("Watch Videos", "https://youtube.com", use_container_width=True)
+            st.link_button("Watch Videos", "https://www.youtube.com/@mcgilldragonboatz", use_container_width=True)
 
     st.divider()
     st.info("Additional resources and forms will be populated here as the season progresses.")

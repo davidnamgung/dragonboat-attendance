@@ -350,11 +350,11 @@ elif st.session_state.page == "Resources":
     r_col1, r_col2, r_col3 = st.columns(3)
     
     with r_col1:
-        st.link_button("📘 Team Handbook", "https://docs.google.com/document", use_container_width=True)
+        st.link_button("📘 Rule Book", "https://docs.google.com/document", use_container_width=True)
     with r_col2:
-        st.link_button("🎥 Paddling Technique Playlist", "https://youtube.com", use_container_width=True)
+        st.link_button("🎥 Video Review Playlist", "https://youtube.com", use_container_width=True)
     with r_col3:
-        st.link_button("👕 Team Merch Store", "https://example.com/merch", use_container_width=True)
+        st.link_button("📝 Waiver Form", "https://example.com/merch", use_container_width=True)
         
     st.divider()
     st.info("Additional resources and forms will be populated here as the season progresses.")

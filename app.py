@@ -438,6 +438,26 @@ elif st.session_state.page == "Analytics":
     
     with tab1:
         st.markdown("### Interactive Master Database")
+
+        # --- 1. Glassmorphic KPI Summary Cards ---
+        st.markdown(f"""
+        <div style="display: flex; gap: 20px; margin-bottom: 25px;">
+            <div style="flex: 1; background-color: rgba(22, 24, 28, 0.65); backdrop-filter: blur(12px); padding: 20px; border-radius: 12px; border: 1px solid rgba(43, 45, 49, 0.8); border-left: 4px solid #ff3333; animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+                <div style="color: #a0a0a5; font-weight: 600; font-size: 0.9rem; text-transform: uppercase;">Total Active Roster</div>
+                <div style="font-family: 'Teko', sans-serif; font-size: 3rem; font-weight: 800; color: white; line-height: 1.1;">{len(df_roster)}</div>
+            </div>
+            <div style="flex: 1; background-color: rgba(22, 24, 28, 0.65); backdrop-filter: blur(12px); padding: 20px; border-radius: 12px; border: 1px solid rgba(43, 45, 49, 0.8); border-left: 4px solid #6c6f78; animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+                <div style="color: #a0a0a5; font-weight: 600; font-size: 0.9rem; text-transform: uppercase;">Total Practices Logged</div>
+                <div style="font-family: 'Teko', sans-serif; font-size: 3rem; font-weight: 800; color: white; line-height: 1.1;">{len(active_signups)}</div>
+            </div>
+            <div style="flex: 1; background-color: rgba(22, 24, 28, 0.65); backdrop-filter: blur(12px); padding: 20px; border-radius: 12px; border: 1px solid rgba(43, 45, 49, 0.8); border-left: 4px solid #ff7a7a; animation: fadeSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+                <div style="color: #a0a0a5; font-weight: 600; font-size: 0.9rem; text-transform: uppercase;">Waitlist Demand</div>
+                <div style="font-family: 'Teko', sans-serif; font-size: 3rem; font-weight: 800; color: white; line-height: 1.1;">{len(df_waitlist)}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
         c1, c2 = st.columns(2)
         with c1: side_filter = st.multiselect("Filter by Side", analytics_df['True Side'].unique())
         with c2: gender_filter = st.multiselect("Filter by Gender", analytics_df['Gender'].unique())
@@ -445,7 +465,18 @@ elif st.session_state.page == "Analytics":
         filtered_df = analytics_df.copy()
         if side_filter: filtered_df = filtered_df[filtered_df['True Side'].isin(side_filter)]
         if gender_filter: filtered_df = filtered_df[filtered_df['Gender'].isin(gender_filter)]
-        st.dataframe(filtered_df, use_container_width=True, hide_index=True)
+        
+        # --- 2. Styled Pandas Dataframe ---
+        styled_df = filtered_df.style.set_properties(**{
+            'background-color': '#16181c',
+            'color': '#a0a0a5',
+            'border-color': '#2b2d31'
+        }).set_table_styles([{
+            'selector': 'th', 
+            'props': [('background-color', '#0e1117'), ('color', '#ffffff'), ('border-color', '#2b2d31')]
+        }])
+        
+        st.dataframe(styled_df, use_container_width=True, hide_index=True)
 
     with tab2:
         st.markdown("### Overall Composition")
@@ -517,22 +548,7 @@ elif st.session_state.page == "Analytics":
             st.altair_chart(render_modern_donut(women_dist, 'Side', side_colors), use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown(f"""
-    <div style="display: flex; gap: 20px; margin-bottom: 25px;">
-        <div style="flex: 1; background-color: rgba(22, 24, 28, 0.65); backdrop-filter: blur(12px); padding: 20px; border-radius: 12px; border: 1px solid rgba(43, 45, 49, 0.8); border-left: 4px solid #ff3333;">
-            <div style="color: #a0a0a5; font-weight: 600; font-size: 0.9rem; text-transform: uppercase;">Total Active Roster</div>
-            <div style="font-family: 'Teko', sans-serif; font-size: 3rem; font-weight: 800; color: white; line-height: 1.1;">{len(df_roster)}</div>
-        </div>
-        <div style="flex: 1; background-color: rgba(22, 24, 28, 0.65); backdrop-filter: blur(12px); padding: 20px; border-radius: 12px; border: 1px solid rgba(43, 45, 49, 0.8); border-left: 4px solid #6c6f78;">
-            <div style="color: #a0a0a5; font-weight: 600; font-size: 0.9rem; text-transform: uppercase;">Total Practices Logged</div>
-            <div style="font-family: 'Teko', sans-serif; font-size: 3rem; font-weight: 800; color: white; line-height: 1.1;">{len(active_signups)}</div>
-        </div>
-        <div style="flex: 1; background-color: rgba(22, 24, 28, 0.65); backdrop-filter: blur(12px); padding: 20px; border-radius: 12px; border: 1px solid rgba(43, 45, 49, 0.8); border-left: 4px solid #ff7a7a;">
-            <div style="color: #a0a0a5; font-weight: 600; font-size: 0.9rem; text-transform: uppercase;">Waitlist Demand</div>
-            <div style="font-family: 'Teko', sans-serif; font-size: 3rem; font-weight: 800; color: white; line-height: 1.1;">{len(df_waitlist)}</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+        
 
     with tab3:
         st.markdown("### Historical Practice Turnout")

@@ -350,6 +350,20 @@ elif st.session_state.page == "Admin":
     else:
         st.markdown('<h1 class="main-title">Admin Dashboard</h1>', unsafe_allow_html=True)
         st.divider()
+
+        # --- NEW: ADMIN RESOURCES SKELETON ---
+        st.markdown("### 📌 Quick Resources")
+        r_col1, r_col2, r_col3, r_col4 = st.columns(4)
+        with r_col1:
+            st.link_button("📊 Supabase Backend", "https://supabase.com", use_container_width=True)
+        with r_col2:
+            st.link_button("📝 Master Google Sheet", "https://docs.google.com/spreadsheets", use_container_width=True)
+        with r_col3:
+            st.link_button("📅 Team Calendar", "https://calendar.google.com", use_container_width=True)
+        with r_col4:
+            st.button("⚙️ Future Feature (WIP)", use_container_width=True, disabled=True)
+            
+        st.markdown("<br>", unsafe_allow_html=True)
         
         admin_tab1, admin_tab2, admin_tab3, admin_tab4 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log", "👥 Manage Roster"])
         

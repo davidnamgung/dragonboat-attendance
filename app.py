@@ -564,36 +564,40 @@ elif st.session_state.page == "Resources":
     st.markdown('<h1 class="main-title">Team Resources</h1>', unsafe_allow_html=True)
     st.divider()
     
-    # 1. Executive Members Popover (Top Resource)
-    with st.popover("2026-2027 Executive Members", use_container_width=True):
-        st.markdown("### DBZ Executive Team")
-        st.markdown("""
-        * **President:** Wei Heng Gao
-        * **Co-President:** David Namgung
-        * **VP Internal:** Catherine Zhu, Fangrui Xu
-        * **VP External:** Felicia Xie, Rui Zhu, Evelyn Liu
-        * **VP Events:** William Killianiotis, Cassandra Duong
-        * **VP Social:** Lina Zheng, Lea Tian, Chelsea Zhang
-        * **VP Finance:** Andy Li
-        * **VP Logistics:** Avery Kim
-        * **VP Fitness:** Orlando, Ceres Brunet, Houwen Yao, Kia Takhsha, Jennifer Tram Su
-        """)
+    # 1. Executive Members Popover (Centered and reduced width)
+    pop_c1, pop_c2, pop_c3 = st.columns([1, 2, 1])
+    with pop_c2:
+        with st.popover("2026-2027 Executive Members", use_container_width=True):
+            st.markdown("### DBZ Executive Team")
+            st.markdown("""
+            * **President:** Wei Heng Gao
+            * **Co-President:** David Namgung
+            * **VP Internal:** Catherine Zhu, Fangrui Xu
+            * **VP External:** Felicia Xie, Rui Zhu, Evelyn Liu
+            * **VP Events:** William Killianiotis, Cassandra Duong
+            * **VP Social:** Lina Zheng, Lea Tian, Chelsea Zhang
+            * **VP Finance:** Andy Li
+            * **VP Logistics:** Avery Kim
+            * **VP Fitness:** Orlando, Ceres Brunet, Houwen Yao, Kia Takhsha, Jennifer Tram Su
+            """)
         
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- NEW: Mandatory Waiver Box ---
-    with st.container(border=True):
-        st.markdown(
-            "<h4 style='display: inline-block; color: #ff3333; background-color: rgba(255, 51, 51, 0.1); padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255, 51, 51, 0.4); box-shadow: 0 0 10px rgba(255, 51, 51, 0.15); margin-bottom: 8px;'>📝 MANDATORY Team Waiver</h4>", 
-            unsafe_allow_html=True
-        )
-        st.caption("Please ensure you have filled out the official team waiver for the current season before attending any practices.")
-        st.link_button("Fill out Google Form Waiver", "https://docs.google.com/forms/d/e/1FAIpQLSdVb6vBQDv0YqJ8weO52RpT-ekvMumnIMSLVga2SLYBYlcukA/viewform?usp=publish-editor", use_container_width=True)
+    # --- NEW: Mandatory Waiver Box (Centered and slightly constrained) ---
+    w_c1, w_c2, w_c3 = st.columns([1, 4, 1])
+    with w_c2:
+        with st.container(border=True):
+            st.markdown(
+                "<h4 style='display: inline-block; color: #ff3333; background-color: rgba(255, 51, 51, 0.1); padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255, 51, 51, 0.4); box-shadow: 0 0 10px rgba(255, 51, 51, 0.15); margin-bottom: 8px;'>📝 MANDATORY Team Waiver</h4>", 
+                unsafe_allow_html=True
+            )
+            st.caption("Please ensure you have filled out the official team waiver for the current season before attending any practices.")
+            st.link_button("Fill out Google Form Waiver", "https://docs.google.com/forms/d/e/1FAIpQLSdVb6vBQDv0YqJ8weO52RpT-ekvMumnIMSLVga2SLYBYlcukA/viewform?usp=publish-editor", use_container_width=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # 2. Resource Card Grid
-    col1, col2 = st.columns(2)
+    # 2. Resource Card Grid (Changed from 2 columns to 3 columns)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
         with st.container(border=True):
@@ -602,44 +606,44 @@ elif st.session_state.page == "Resources":
             st.link_button("Open Slides", "https://canva.link/bj2ock01gq6bp59", use_container_width=True)
             
         with st.container(border=True):
+            st.markdown("#### 🩹 INJURY PREVENTION")
+            st.caption("Prevent injuries during the year.")
+            st.link_button("Read Guidelines", "https://docs.google.com/document/d/1VjugbUaSLyP1ChlYMlROkeLu9mJ1FXuyizIRI8bc8-A/edit?usp=sharing", use_container_width=True)
+            
+        with st.container(border=True):
+            st.markdown("#### 🏆 Competition Prep")
+            st.caption("Preparation docs ahead of any competitions")
+            st.link_button("View Checklists", "https://docs.google.com/document/d/1P-CBhKYLZ1EYMQgBo90BJFmbPkWR780hu3OnCRb_qAM/edit?usp=sharing", use_container_width=True)
+
+    with col2:
+        with st.container(border=True):
             st.markdown("#### 🚇 TRANSIT Guide")
             st.caption("How to get to Canal Fitness via Bus and Metro")
             st.link_button("View Route Map", "https://docs.google.com/document/d/1ip7_Wmi4wuVdmcIbPUp993xwF7i3KOuwKcSp0Wl_yx8/edit?usp=sharing", use_container_width=True)
             
-        with st.container(border=True):
-            st.markdown("#### ⏱️ DBZ Racing History")
-            st.caption("List of DBZ Races with the times and rankings")
-            st.link_button("View Rankings", "https://docs.google.com/spreadsheets/d/1I4GCgein1PvvQIoD1g4VcViRa6WTIgu1HAwT-JJtNV8/edit?usp=sharing", use_container_width=True)
-            
-        with st.container(border=True):
-            st.markdown("#### 🩹 INJURY PREVENTION")
-            st.caption("Prevent injuries during the year.")
-            st.link_button("Read Guidelines", "https://docs.google.com/document/d/1VjugbUaSLyP1ChlYMlROkeLu9mJ1FXuyizIRI8bc8-A/edit?usp=sharing", use_container_width=True)
-
-    with col2:
         with st.container(border=True):
             st.markdown("#### 🐉 GUIDE Dragon Boat 101")
             st.caption("A guide stating the different teams in Montreal, competitions and our club.")
             st.link_button("Read Guide", "https://docs.google.com/document/d/1aECu-CS_SJqLzacokfgaGeppBZmYdOYQyNL_TyNtCtk/edit?usp=sharing", use_container_width=True)
             
         with st.container(border=True):
-            st.markdown("#### 📜 DBZ HISTORY")
-            st.caption("Documented history of our club.")
-            st.link_button("Read History", "https://docs.google.com/document/d/1OmqWDTVmkPXhYEDlX2H2jxcSyBEvUNy4hFscLRg6ah0/edit?usp=sharing", use_container_width=True)
-            
-        with st.container(border=True):
-            st.markdown("#### 🏆 Competition Prep")
-            st.caption("Preparation docs ahead of any competitions")
-            st.link_button("View Checklists", "https://docs.google.com/document/d/1P-CBhKYLZ1EYMQgBo90BJFmbPkWR780hu3OnCRb_qAM/edit?usp=sharing", use_container_width=True)
-            
-        with st.container(border=True):
             st.markdown("#### 🎥 YouTube Channel")
             st.caption("Check out our races!")
             st.link_button("Watch Videos", "https://www.youtube.com/@mcgilldragonboatz", use_container_width=True)
 
+    with col3:
+        with st.container(border=True):
+            st.markdown("#### ⏱️ DBZ Racing History")
+            st.caption("List of DBZ Races with the times and rankings")
+            st.link_button("View Rankings", "https://docs.google.com/spreadsheets/d/1I4GCgein1PvvQIoD1g4VcViRa6WTIgu1HAwT-JJtNV8/edit?usp=sharing", use_container_width=True)
+            
+        with st.container(border=True):
+            st.markdown("#### 📜 DBZ HISTORY")
+            st.caption("Documented history of our club.")
+            st.link_button("Read History", "https://docs.google.com/document/d/1OmqWDTVmkPXhYEDlX2H2jxcSyBEvUNy4hFscLRg6ah0/edit?usp=sharing", use_container_width=True)
+
     st.divider()
     st.info("Additional resources and forms will be populated here as the season progresses.")
-
 # --- 7. PAGE 3: ADMIN DASHBOARD (FRAGMENTED) ---
 elif st.session_state.page == "Admin":
     if not st.session_state.admin_authenticated:

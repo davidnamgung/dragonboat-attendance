@@ -547,6 +547,8 @@ elif st.session_state.page == "Analytics":
     
     analytics_df['Pool Practices'] = analytics_df['Pool Practices'].fillna(0).astype(int)
     analytics_df['Circuit Practices'] = analytics_df['Circuit Practices'].fillna(0).astype(int)
+
+    analytics_df = analytics_df.sort_values(by="Name", ascending=True).reset_index(drop=True)
     
     # 4. Calculate Independent Attendance Rates (Allows >100% via Walk-ins)
     if num_pool_weeks > 0:

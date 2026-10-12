@@ -108,7 +108,13 @@ st.markdown("""
     /* Tabs */
     .stTabs [data-baseweb="tab-list"] { gap: 8px; background-color: transparent; }
     .stTabs [data-baseweb="tab"] { height: 40px; background-color: #16181c; border-radius: 50px !important; border: 1px solid #2b2d31; padding: 0px 20px; font-weight: 600; font-family: 'Inter', sans-serif; color: #8b8d91; }
-    .stTabs [aria-selected="true"] { background-color: #ff3333 !important; color: white !important; border-color: #ff3333 !important; }
+    /* Modern Subtle Active Tab Style */
+    .stTabs [aria-selected="true"] { 
+        background-color: rgba(255, 51, 51, 0.15) !important; 
+        color: #ff7a7a !important; 
+        border-color: rgba(255, 51, 51, 0.5) !important; 
+        box-shadow: 0 4px 12px rgba(255, 51, 51, 0.2);
+    }
     .stTabs [data-baseweb="tab-highlight"] { display: none !important; }
     
     /* Mobile Responsive */

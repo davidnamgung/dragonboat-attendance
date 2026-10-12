@@ -376,14 +376,13 @@ elif st.session_state.page == "Admin":
                 c1, c2 = st.columns([1, 2.5])
                 with c1:
                     offenders = no_shows_df['Name'].value_counts().reset_index()
-                    offenders.columns = if st.button("Confirm Attendance", use_container_width=True):'Name', 'Missed Practices']
+                    offenders.columns = ['Name', 'Missed Practices']
                     st.dataframe(offenders, use_container_width=True, hide_index=True)
                 with c2:
                     # Merge to bring in Side, Gender, and Membership
                     enriched_no_shows = pd.merge(no_shows_df, df_roster, on="Name", how="left")
                     log_display = enriched_no_shows[['Practice Date', 'Name', 'True Side', 'Gender', 'Membership']].sort_values(by='Practice Date', ascending=False)
                     st.dataframe(log_display, use_container_width=True, hide_index=True)
-
         with admin_tab3:
             st.markdown("### System Audit Log")
             st.caption("Scroll through the table to view all historical modifications.")

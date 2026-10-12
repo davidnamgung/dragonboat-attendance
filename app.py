@@ -52,7 +52,7 @@ fri_str = format_date(fri_dt, "6:00 PM - 7:00 PM [Pool]")
 
 TIMESLOTS = {thurs_str: thurs_dt, circuit_str: circuit_dt, fri_str: fri_dt}
 
-is_open = True
+is_open = False
 if now.weekday() == 0 and now.hour >= 20: 
     is_open = True
 elif 1 <= now.weekday() <= 4:

@@ -409,7 +409,7 @@ elif st.session_state.page == "Resources":
     st.divider()
     
     # 1. Executive Members Popover (Top Resource)
-    with st.popover("👑 View 2026-2027 Executive Members", use_container_width=True):
+    with st.popover("2026-2027 Executive Members", use_container_width=True):
         st.markdown("### DBZ Executive Team")
         st.markdown("""
         * **President:** Wei Heng Gao

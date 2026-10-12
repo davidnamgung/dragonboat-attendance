@@ -384,47 +384,74 @@ elif st.session_state.page == "Admin":
         def render_admin_form(ts_string):
             ts_active = df_signups[(df_signups['Practice Date'] == ts_string) & (df_signups['Status'] != 'Cancelled')] if not df_signups.empty else pd.DataFrame()
             
-            with st.form(key=f"att_form_{ts_string}"):
-                checkbox_states = {}
-                if not ts_active.empty:
-                    # Sort the active signups alphabetically by name
-                    ts_active = ts_active.sort_values(by="Name")
-                    
-                    for i, row in ts_active.iterrows():
+            checkbox_states = {}
+            if not ts_active.empty:
+                # Sort the active signups alphabetically by name
+                ts_active = ts_active.sort_values(by="Name")
+                
+                for i, row in ts_active.iterrows():
+                    col1, col2 = st.columns([8, 1])
+                    with col1:
                         is_checked = row['Status'] in ['Active', 'Attended']
-                        checkbox_states[row['id']] = st.checkbox(f"{row['Name']} (Current: {row['Status']})", value=is_checked)
-                else:
-                    st.info("No records pending confirmation.")
-                
-                st.markdown("---")
-                # Inline Walk-In Feature
-                all_names = df_roster['Name'].tolist() if not df_roster.empty else []
-                current_names = ts_active['Name'].tolist() if not ts_active.empty else []
-                
-                # Sort the available walk-in dropdown names alphabetically 
-                available_names = sorted([n for n in all_names if n not in current_names])
-                walkin_name = st.selectbox("➕ Add Walk-In (Optional)", available_names, index=None, placeholder="Select a name to append to today's list...")
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.form_submit_button("Submit Attendance & Walk-Ins", use_container_width=True):
-                    updates_made = False
-                    for record_id, is_present in checkbox_states.items():
-                        new_status = "Attended" if is_present else "No-Show"
-                        supabase.table("signups").update({"Status": new_status}).eq("id", record_id).execute()
-                        updates_made = True
-                        
-                    if walkin_name:
-                        supabase.table("signups").insert({"Practice Date": ts_string, "Name": walkin_name, "Status": "Attended"}).execute()
-                        log_action("Walk-In Added", f"{walkin_name} manually added to {ts_string}")
-                        updates_made = True
-                        
-                    if updates_made:
-                        log_action("Attendance Submitted", f"Bulk update processed for {ts_string}")
-                        load_live_data.clear()
-                        load_audit_log.clear()
-                        st.success(f"Records updated for {ts_string.split(',')[0]}.")
-                        st.rerun()
+                        checkbox_states[row['id']] = st.checkbox(f"{row['Name']} (Current: {row['Status']})", value=is_checked, key=f"chk_{row['id']}_{ts_string}")
+                    with col2:
+                        if st.button("❌", key=f"rem_{row['id']}_{ts_string}", help=f"Remove {row['Name']} from this session"):
+                            # 1. Cancel the user's active status
+                            supabase.table("signups").update({"Status": "Cancelled"}).eq("id", row['id']).execute()
+                            log_action("Admin Forcibly Removed Paddler", f"{row['Name']} was removed from {ts_string}")
+                            
+                            # 2. Trigger automatic waitlist promotion to fill the empty seat
+                            user_data = df_roster[df_roster['Name'] == row['Name']]
+                            if not user_data.empty:
+                                user_side = user_data.iloc[0].get('True Side', 'Unknown')
+                                eff_side = 'Left' if user_side in ['Unknown', 'Ambidextrous'] else user_side
+                                
+                                if not df_waitlist.empty:
+                                    pending = df_waitlist[(df_waitlist['Practice Date'] == ts_string) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
+                                    for idx, w_row in pending.iterrows():
+                                        if w_row['Side'] in [eff_side, 'Unknown', 'Ambidextrous'] or "[Circuit]" in ts_string:
+                                            supabase.table("waitlist").update({"Status": "Promoted"}).eq("id", int(w_row['id'])).execute()
+                                            supabase.table("signups").insert({"Practice Date": ts_string, "Name": w_row['Name'], "Status": "Active"}).execute()
+                                            log_action("Waitlist Promotion", f"{w_row['Name']} automatically promoted to Active for {ts_string} after admin removal")
+                                            break
+                                            
+                            load_live_data.clear()
+                            load_audit_log.clear()
+                            st.rerun()
+            else:
+                st.info("No records pending confirmation.")
             
+            st.markdown("---")
+            # Inline Walk-In Feature
+            all_names = df_roster['Name'].tolist() if not df_roster.empty else []
+            current_names = ts_active['Name'].tolist() if not ts_active.empty else []
+            
+            # Sort the available walk-in dropdown names alphabetically 
+            available_names = sorted([n for n in all_names if n not in current_names])
+            walkin_name = st.selectbox("➕ Add Walk-In (Optional)", available_names, index=None, placeholder="Select a name to append to today's list...", key=f"walkin_{ts_string}")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # The submit button now operates outside a form, reading the dynamic checkbox states
+            if st.button("Submit Attendance & Walk-Ins", use_container_width=True, key=f"sub_{ts_string}"):
+                updates_made = False
+                for record_id, is_present in checkbox_states.items():
+                    new_status = "Attended" if is_present else "No-Show"
+                    supabase.table("signups").update({"Status": new_status}).eq("id", record_id).execute()
+                    updates_made = True
+                    
+                if walkin_name:
+                    supabase.table("signups").insert({"Practice Date": ts_string, "Name": walkin_name, "Status": "Attended"}).execute()
+                    log_action("Walk-In Added", f"{walkin_name} manually added to {ts_string}")
+                    updates_made = True
+                    
+                if updates_made:
+                    log_action("Attendance Submitted", f"Bulk update processed for {ts_string}")
+                    load_live_data.clear()
+                    load_audit_log.clear()
+                    st.success(f"Records updated for {ts_string.split(',')[0]}.")
+                    st.rerun()
+        
             with st.popover(f"🗑️ Delete {ts_string.split(',')[0]} Data", use_container_width=True):
                 st.error("Permanently delete all records for this date?")
                 if st.button("Confirm Delete", key=f"del_{ts_string}"):

@@ -12,25 +12,65 @@ st.set_page_config(page_title="McGill Dragon Boat Z Attendance", layout="wide", 
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-    [data-testid="stAppViewContainer"] { background-color: #0e1117; color: #e0e0e0; font-family: 'Inter', sans-serif; }
+    
+    /* Background & Layout */
+    [data-testid="stAppViewContainer"] { 
+        background: radial-gradient(circle at 50% 0%, rgba(255, 51, 51, 0.08) 0%, #0e1117 40%) !important; 
+        color: #e0e0e0; 
+        font-family: 'Inter', sans-serif; 
+    }
     [data-testid="stSidebar"] { background-color: #16181c; border-right: 1px solid #2b2d31; }
+    hr { border: none !important; height: 1px !important; background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.5), transparent) !important; margin: 2rem 0 !important; }
+
+    /* Typography */
     .main-title { text-align: center; font-family: 'Inter', sans-serif; font-weight: 800; font-size: 4rem; background: -webkit-linear-gradient(45deg, #ff3333, #ff7a7a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px; padding-bottom: 0px; letter-spacing: -1.5px; }
     .sub-title { text-align: center; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1.8rem; color: #8b8d91; margin-top: -5px; margin-bottom: 30px; letter-spacing: -0.5px; }
     .instructions { text-align: center; font-family: 'Inter', sans-serif; font-size: 1.1rem; color: #a0a0a5; max-width: 850px; margin: 0 auto; line-height: 1.6; background: #16181c; padding: 20px; border-radius: 12px; border: 1px solid #2b2d31; }
+    
+    /* Inputs */
     .stSelectbox label { font-family: 'Inter', sans-serif !important; font-size: 1.4rem !important; font-weight: 600; color: #ffffff !important; text-align: center; }
     div[data-baseweb="select"] > div { background-color: #1a1c23 !important; border-radius: 12px !important; border: 1px solid #3a3d45 !important; }
-    .stButton>button { background-color: #ff3333 !important; color: white !important; height: 3.2rem; font-size: 1.1rem; font-weight: 600; font-family: 'Inter', sans-serif; border-radius: 12px; border: None; width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(255, 51, 51, 0.2); }
-    .stButton>button:hover { background-color: #ff4d4d !important; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(255, 51, 51, 0.3); }
-    .roster-card { background-color: #16181c; padding: 20px; border-radius: 16px; border: 1px solid #2b2d31; border-top: 4px solid #ff3333; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+    
+    /* Buttons with Pulse Glow */
+    @keyframes pulseGlow {
+        0% { box-shadow: 0 0 5px rgba(255, 51, 51, 0.2); }
+        50% { box-shadow: 0 0 20px rgba(255, 51, 51, 0.6); }
+        100% { box-shadow: 0 0 5px rgba(255, 51, 51, 0.2); }
+    }
+    .stButton>button { 
+        background-color: #ff3333 !important; 
+        color: white !important; 
+        height: 3.2rem; 
+        font-size: 1.1rem; 
+        font-weight: 600; 
+        font-family: 'Inter', sans-serif; 
+        border-radius: 12px; 
+        border: None; 
+        width: 100%; 
+        transition: all 0.3s ease; 
+        animation: pulseGlow 3s infinite;
+    }
+    .stButton>button:hover { 
+        background-color: #ff4d4d !important; 
+        transform: translateY(-2px); 
+        animation: none; 
+        box-shadow: 0 6px 15px rgba(255, 51, 51, 0.5) !important; 
+    }
+
+    /* Cards & Lists */
+    .roster-card { background-color: #16181c; padding: 20px; border-radius: 16px; border: 1px solid #2b2d31; border-top: 4px solid #ff3333; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); transition: all 0.3s ease; }
+    .roster-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(255, 51, 51, 0.15); border-color: #4a4d55; }
     .roster-title { color: #ffffff; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 1.2rem; margin-bottom: 12px; border-bottom: 1px solid #2b2d31; padding-bottom: 8px; }
     .paddler-list { font-family: 'Inter', sans-serif; font-size: 1.05rem; line-height: 1.6; color: #a0a0a5; }
+    
+    /* Tabs */
     .stTabs [data-baseweb="tab-list"] { gap: 8px; background-color: transparent; }
     .stTabs [data-baseweb="tab"] { height: 40px; background-color: #16181c; border-radius: 50px !important; border: 1px solid #2b2d31; padding: 0px 20px; font-weight: 600; font-family: 'Inter', sans-serif; color: #8b8d91; }
     .stTabs [aria-selected="true"] { background-color: #ff3333 !important; color: white !important; border-color: #ff3333 !important; }
     .stTabs [data-baseweb="tab-highlight"] { display: none !important; }
+    
+    /* Mobile Responsive */
     @media (max-width: 768px) { .main-title { font-size: 2.5rem; letter-spacing: -1px; } .sub-title { font-size: 1.4rem; } .instructions { font-size: 1rem; padding: 15px; text-align: left; } .stSelectbox label { font-size: 1.2rem !important; } .stTabs [data-baseweb="tab-list"] { display: flex; flex-direction: column; gap: 8px; } }
-    .roster-card { transition: all 0.3s ease; }
-.roster-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(255, 51, 51, 0.15); border-color: #4a4d55; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -590,7 +630,7 @@ elif st.session_state.page == "Admin":
                     log_action("Attendance Submitted", f"Bulk update processed for {ts_string}")
                     load_live_data.clear()
                     load_audit_log.clear()
-                    st.success(f"Records updated for {ts_string.split(',')[0]}.")
+                    st.toast(f"Records updated for {ts_string.split(',')[0]}.", icon="🐉")
                     st.rerun()
         
             with st.popover(f"🗑️ Delete {ts_string.split(',')[0]} Data", use_container_width=True):
@@ -686,7 +726,7 @@ elif st.session_state.page == "Admin":
                             log_action("Roster Addition", f"{new_name} was added to the database.")
                             load_roster.clear()
                             load_audit_log.clear()
-                            st.success(f"🎉 {new_name} has been added and can now access the sign-up portal!")
+                            st.toast(f"{new_name} added to roster!", icon="✅")
                             st.rerun()
 
             st.divider()
@@ -749,7 +789,7 @@ elif st.session_state.page == "Admin":
                             load_roster.clear()
                             load_live_data.clear()
                             load_audit_log.clear()
-                            st.success(f"Profile updated for {upd_name.strip()}!")
+                            st.toast(f"Profile updated for {upd_name.strip()}", icon="💾")
                             st.rerun()
 
                 # Keep the permanent removal popover outside the form so buttons don't conflict
@@ -814,7 +854,7 @@ elif st.session_state.page == "Admin":
                     log_action("Financials Updated", "Admin modified roster payment/waiver statuses")
                     load_roster.clear()
                     load_audit_log.clear()
-                    st.success("Roster financials successfully saved to the database.")
+                    st.toast("Financials saved successfully.", icon="💰")
                     st.rerun()
                 else:
                     st.info("No changes detected.")

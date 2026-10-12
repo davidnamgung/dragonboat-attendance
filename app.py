@@ -367,115 +367,132 @@ elif st.session_state.page == "Sign Up":
     if not is_open:
         st.info("🔒 Registration is currently closed. Sign-ups open every Monday at 8:00 PM.")
     else:
-        st.markdown("""<div class="instructions">Welcome to the sign-up portal. Please select your name below and choose your preferred timeslot. To ensure everyone gets water time, attendance is strictly limited to <strong>one practice per week</strong>. If your schedule changes, simply log back in and cancel your spot to instantly free it up for a teammate. You can view the live attendee list in the sidebar at any time.<br><br>Each session is capped at <strong>32 paddlers</strong> to maintain an even split of 16 Lefts and 16 Rights. If you paddle on both sides or do not have a set preference yet, the system will automatically allocate your seat to keep the boat balanced.<br><br>If a practice reaches capacity, you will be added to a side-specific waitlist. Whenever a cancellation occurs, the system automatically promotes the next person in line based on a first-come, first-served order. You can also cancel your waitlist position directly from this portal.</div>""", unsafe_allow_html=True)
+        st.markdown("""<div class="instructions">Welcome to the sign-up portal. Please select your name below and choose your preferred timeslot. To ensure everyone gets water time, attendance is strictly limited to <strong>one pool practice per week</strong>. If your schedule changes, simply log back in and cancel your spot to instantly free it up for a teammate. You can view the live attendee list in the sidebar at any time.<br><br>Each pool session is capped at <strong>32 paddlers</strong> to maintain an even split of 16 Lefts and 16 Rights. If you paddle on both sides or do not have a set preference yet, the system will automatically allocate your seat to keep the boat balanced.<br><br>If a practice reaches capacity, you will be added to a side-specific waitlist. Whenever a cancellation occurs, the system automatically promotes the next person in line based on a first-come, first-served order. You can also cancel your waitlist position directly from this portal.</div>""", unsafe_allow_html=True)
         st.divider()
         
-        name_list = df_roster['Name'].tolist() if not df_roster.empty else []
-        user_name = st.selectbox("Select your Full Name", options=name_list, index=None, placeholder="Start typing your name here...")
-    
-        @st.fragment
-        def render_signup_portal(user_name):
-            st.divider()
+        # --- NEW: User Login Flow ---
+        if 'current_user' not in st.session_state:
+            st.session_state.current_user = None
+
+        if not st.session_state.current_user:
+            name_list = df_roster['Name'].tolist() if not df_roster.empty else []
+            selected_name = st.selectbox("Select your Full Name", options=name_list, index=None, placeholder="Start typing your name here...")
             
-            # --- NEW: True Side Updater & Membership Check ---
-            user_data = df_roster[df_roster['Name'] == user_name].iloc[0]
-            user_side = user_data.get('True Side', 'Unknown')
-            user_membership = str(user_data.get('Membership', 'Unknown')).strip()
-            user_eff_side = 'Left' if user_side in ['Unknown', 'Ambidextrous'] else user_side
+            if selected_name:
+                if st.button("Access Portal", use_container_width=True):
+                    st.session_state.current_user = selected_name
+                    st.rerun()
+        else:
+            user_name = st.session_state.current_user
             
-            col1, col2 = st.columns([3, 1])
+            col1, col2 = st.columns([4, 1])
             with col1:
-                st.markdown(f"### Welcome, **{user_name}**")
-                st.markdown(f"**Membership:** {user_membership} | **Current Side:** {user_side}")
+                st.success(f"Access granted for **{user_name}**")
             with col2:
-                with st.popover("🔄 Update Side", use_container_width=True):
-                    new_side = st.radio("Select your True Side:", ["Left", "Right", "Ambidextrous", "Unknown"], index=["Left", "Right", "Ambidextrous", "Unknown"].index(user_side) if user_side in ["Left", "Right", "Ambidextrous", "Unknown"] else 3)
-                    if st.button("Save", use_container_width=True):
-                        supabase.table("roster").update({"True Side": new_side}).eq("Name", user_name).execute()
-                        load_roster.clear()
-                        st.rerun()
-            st.divider()
-            
-            # --- Existing Signup Display Logic ---
-            for ts_str in TIMESLOTS.keys():
-                day_name = ts_str.split(',')[0] + (" (Circuit)" if "[Circuit]" in ts_str else "")
+                if st.button("Switch User", use_container_width=True):
+                    st.session_state.current_user = None
+                    st.rerun()
+        
+            @st.fragment
+            def render_signup_portal(user_name):
+                st.divider()
                 
-                active_record = df_signups[(df_signups['Practice Date'] == ts_str) & (df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()
-                wl_record = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')] if not df_waitlist.empty else pd.DataFrame()
+                user_data = df_roster[df_roster['Name'] == user_name].iloc[0]
+                user_side = user_data.get('True Side', 'Unknown')
+                user_membership = str(user_data.get('Membership', 'Unknown')).strip()
+                user_eff_side = 'Left' if user_side in ['Unknown', 'Ambidextrous'] else user_side
+                
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    st.markdown(f"### Welcome, **{user_name}**")
+                    st.markdown(f"**Membership:** {user_membership} | **Current Side:** {user_side}")
+                with col2:
+                    with st.popover("🔄 Update Side", use_container_width=True):
+                        new_side = st.radio("Select your True Side:", ["Left", "Right", "Ambidextrous", "Unknown"], index=["Left", "Right", "Ambidextrous", "Unknown"].index(user_side) if user_side in ["Left", "Right", "Ambidextrous", "Unknown"] else 3)
+                        if st.button("Save", use_container_width=True):
+                            supabase.table("roster").update({"True Side": new_side}).eq("Name", user_name).execute()
+                            load_roster.clear()
+                            st.rerun()
+                st.divider()
+                
+                for ts_str in TIMESLOTS.keys():
+                    day_name = ts_str.split(',')[0] + (" (Circuit)" if "[Circuit]" in ts_str else "")
                     
-                if not active_record.empty:
-                    st.success(f"✅ You are actively signed up for **{day_name}**.")
-                    if st.button(f"🚨 Cancel {day_name} Attendance", key=f"cancel_att_{ts_str}"):
-                        record_id = int(active_record.iloc[0]['id'])
-                        supabase.table("signups").update({"Status": "Cancelled"}).eq("id", record_id).execute()
+                    active_record = df_signups[(df_signups['Practice Date'] == ts_str) & (df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()
+                    wl_record = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')] if not df_waitlist.empty else pd.DataFrame()
                         
-                        if not df_waitlist.empty:
-                            pending = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
-                            for idx, row in pending.iterrows():
-                                if row['Side'] in [user_eff_side, 'Unknown', 'Ambidextrous'] or "[Circuit]" in ts_str:
-                                    supabase.table("waitlist").update({"Status": "Promoted"}).eq("id", int(row['id'])).execute()
-                                    supabase.table("signups").insert({"Practice Date": ts_str, "Name": row['Name'], "Status": "Active"}).execute()
-                                    break
-                        load_live_data.clear()
-                        st.rerun()
-                        
-                elif not wl_record.empty:
-                    pending_all = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
-                    pos = pending_all['Name'].tolist().index(user_name) + 1
-                    st.warning(f"⏳ You are **#{pos}** on the waitlist for **{day_name}**.")
-                    if st.button(f"🚨 Cancel {day_name} Waitlist", key=f"cancel_wl_{ts_str}"):
-                        record_id = int(wl_record.iloc[0]['id'])
-                        supabase.table("waitlist").update({"Status": "Cancelled"}).eq("id", record_id).execute()
-                        load_live_data.clear()
-                        st.rerun()
-                        
-            st.divider()
-            
-            # --- Available Practices Selection ---
-            available_timeslots = [ts for ts in TIMESLOTS.keys() if (df_signups.empty or df_signups[(df_signups['Practice Date'] == ts) & (df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))].empty) and (df_waitlist.empty or df_waitlist[(df_waitlist['Practice Date'] == ts) & (df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')].empty)]
-            
-            if available_timeslots:
-                st.markdown("### Sign Up for a Practice")
-                timeslot = st.radio("Select Practice:", available_timeslots)
-                target_dt = TIMESLOTS[timeslot] 
-                
-                is_circuit = "[Circuit]" in timeslot
-                is_pool = "[Pool]" in timeslot
-                
-                active_all = df_signups[(df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()
-                current_week_active = [ts for ts in (active_all['Practice Date'].tolist() if not active_all.empty else []) if ts in TIMESLOTS.keys()]
-                
-                # Check Pool limits (ignores circuits)
-                active_pool_count = len([ts for ts in current_week_active if "[Pool]" in ts])
-                
-                can_signup = True
-                
-                if is_circuit and user_membership != 'BOTH semesters (with circuit)':
-                    can_signup = False
-                    st.error("❌ Your current membership tier does not include Circuit Training.")
-                
-                elif is_pool and active_pool_count >= 1 and now < (target_dt - timedelta(hours=2)):
-                    can_signup = False
-                    st.error("🔒 You are already signed up for a pool practice this week. You may only sign up for a second pool practice starting 2 hours before it begins.")
-                
-                if can_signup:
-                    ts_active = df_signups[(df_signups['Practice Date'] == timeslot) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()
-                    merged = pd.merge(ts_active, df_roster, on="Name", how="left") if not ts_active.empty else pd.DataFrame()
-                    left_count = len(merged[merged['True Side'].isin(['Left', 'Unknown', 'Ambidextrous'])]) if not merged.empty else 0
-                    right_count = len(merged[merged['True Side'] == 'Right']) if not merged.empty else 0
-                    
-                    # Circuits might have a different capacity (assuming 32 for now, adjust if needed)
-                    boat_full = len(ts_active) >= 32 or (is_pool and user_eff_side == 'Left' and left_count >= 16) or (is_pool and user_eff_side == 'Right' and right_count >= 16)
-                        
-                    if st.button("Confirm Attendance", use_container_width=True):
-                        if boat_full:
-                            supabase.table("waitlist").insert({"Practice Date": timeslot, "Name": user_name, "Side": user_side, "Status": "Waiting"}).execute()
-                            st.warning(f"The session is full. You have been added to the waitlist!")
-                        else:
-                            supabase.table("signups").insert({"Practice Date": timeslot, "Name": user_name, "Status": "Active"}).execute()
-                            st.balloons()
+                    if not active_record.empty:
+                        st.success(f"✅ You are actively signed up for **{day_name}**.")
+                        if st.button(f"🚨 Cancel {day_name} Attendance", key=f"cancel_att_{ts_str}"):
+                            record_id = int(active_record.iloc[0]['id'])
+                            supabase.table("signups").update({"Status": "Cancelled"}).eq("id", record_id).execute()
                             
-                        load_live_data.clear()
-                        st.rerun()
-            else:
-                st.info("You are currently signed up or waitlisted for all available practices this week.")
+                            if not df_waitlist.empty:
+                                pending = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
+                                for idx, row in pending.iterrows():
+                                    if row['Side'] in [user_eff_side, 'Unknown', 'Ambidextrous'] or "[Circuit]" in ts_str:
+                                        supabase.table("waitlist").update({"Status": "Promoted"}).eq("id", int(row['id'])).execute()
+                                        supabase.table("signups").insert({"Practice Date": ts_str, "Name": row['Name'], "Status": "Active"}).execute()
+                                        break
+                            load_live_data.clear()
+                            st.rerun()
+                            
+                    elif not wl_record.empty:
+                        pending_all = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
+                        pos = pending_all['Name'].tolist().index(user_name) + 1
+                        st.warning(f"⏳ You are **#{pos}** on the waitlist for **{day_name}**.")
+                        if st.button(f"🚨 Cancel {day_name} Waitlist", key=f"cancel_wl_{ts_str}"):
+                            record_id = int(wl_record.iloc[0]['id'])
+                            supabase.table("waitlist").update({"Status": "Cancelled"}).eq("id", record_id).execute()
+                            load_live_data.clear()
+                            st.rerun()
+                            
+                st.divider()
+                
+                available_timeslots = [ts for ts in TIMESLOTS.keys() if (df_signups.empty or df_signups[(df_signups['Practice Date'] == ts) & (df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))].empty) and (df_waitlist.empty or df_waitlist[(df_waitlist['Practice Date'] == ts) & (df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')].empty)]
+                
+                if available_timeslots:
+                    st.markdown("### Sign Up for a Practice")
+                    timeslot = st.radio("Select Practice:", available_timeslots)
+                    target_dt = TIMESLOTS[timeslot] 
+                    
+                    is_circuit = "[Circuit]" in timeslot
+                    is_pool = "[Pool]" in timeslot
+                    
+                    active_all = df_signups[(df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()
+                    current_week_active = [ts for ts in (active_all['Practice Date'].tolist() if not active_all.empty else []) if ts in TIMESLOTS.keys()]
+                    
+                    active_pool_count = len([ts for ts in current_week_active if "[Pool]" in ts])
+                    
+                    can_signup = True
+                    
+                    if is_circuit and user_membership != 'BOTH semesters (with circuit)':
+                        can_signup = False
+                        st.error("❌ Your current membership tier does not include Circuit Training.")
+                    
+                    elif is_pool and active_pool_count >= 1 and now < (target_dt - timedelta(hours=2)):
+                        can_signup = False
+                        st.error("🔒 You are already signed up for a pool practice this week. You may only sign up for a second pool practice starting 2 hours before it begins.")
+                    
+                    if can_signup:
+                        ts_active = df_signups[(df_signups['Practice Date'] == timeslot) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()
+                        merged = pd.merge(ts_active, df_roster, on="Name", how="left") if not ts_active.empty else pd.DataFrame()
+                        left_count = len(merged[merged['True Side'].isin(['Left', 'Unknown', 'Ambidextrous'])]) if not merged.empty else 0
+                        right_count = len(merged[merged['True Side'] == 'Right']) if not merged.empty else 0
+                        
+                        boat_full = len(ts_active) >= 32 or (is_pool and user_eff_side == 'Left' and left_count >= 16) or (is_pool and user_eff_side == 'Right' and right_count >= 16)
+                            
+                        if st.button("Confirm Attendance", use_container_width=True):
+                            if boat_full:
+                                supabase.table("waitlist").insert({"Practice Date": timeslot, "Name": user_name, "Side": user_side, "Status": "Waiting"}).execute()
+                                st.warning(f"The session is full. You have been added to the waitlist!")
+                            else:
+                                supabase.table("signups").insert({"Practice Date": timeslot, "Name": user_name, "Status": "Active"}).execute()
+                                st.balloons()
+                                
+                            load_live_data.clear()
+                            st.rerun()
+                else:
+                    st.info("You are currently signed up or waitlisted for all available practices this week.")
+
+            render_signup_portal(user_name)

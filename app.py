@@ -209,6 +209,18 @@ st.markdown("""
         animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
+    .roster-card {
+    position: relative;
+    overflow: hidden;
+}
+.roster-card:hover::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255, 51, 51, 0.15), transparent 40%);
+    pointer-events: none;
+}
+
     /* Custom Centered App Banners */
     .app-banner {
         text-align: center;

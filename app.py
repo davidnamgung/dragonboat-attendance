@@ -19,7 +19,12 @@ st.markdown("""
         color: #e0e0e0; 
         font-family: 'Inter', sans-serif; 
     }
-    [data-testid="stSidebar"] { background-color: #16181c; border-right: 1px solid #2b2d31; }
+    [data-testid="stSidebar"] { 
+        background-color: rgba(14, 17, 23, 0.4) !important; 
+        backdrop-filter: blur(20px) !important; 
+        border-right: 1px solid rgba(43, 45, 49, 0.5) !important; 
+    }
+    
     hr { border: none !important; height: 1px !important; background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.5), transparent) !important; margin: 2rem 0 !important; }
 
     /* Typography */
@@ -123,6 +128,15 @@ st.markdown("""
         border-color: rgba(255, 51, 51, 0.6) !important;
         box-shadow: 0 4px 15px rgba(255, 51, 51, 0.15) !important;
         background-color: rgba(255, 51, 51, 0.03) !important;
+    }
+
+    /* Fluid Entrance Animations */
+    @keyframes fadeSlideUp {
+        0% { opacity: 0; transform: translateY(15px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .roster-card, [data-testid="stVerticalBlockBorderWrapper"], [data-testid="stExpander"] {
+        animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
 

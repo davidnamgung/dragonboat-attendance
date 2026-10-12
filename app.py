@@ -247,26 +247,54 @@ elif st.session_state.page == "Analytics":
     st.divider()
     
     active_signups = df_signups[df_signups['Status'].isin(['Active', 'Attended'])] if not df_signups.empty else pd.DataFrame()
-    attendance_counts = pd.DataFrame(columns=['Name', 'Practices Attended'])
-    total_practices_held = 0
+    
+    # 1. Calculate the total number of weeks dynamically
+    all_dates = df_signups['Practice Date'].unique().tolist() if not df_signups.empty else []
+    pool_dates = [d for d in all_dates if '[Pool]' in d]
+    circuit_dates = [d for d in all_dates if '[Circuit]' in d]
+    
+    num_pool_weeks = len(set(get_week_label(d) for d in pool_dates))
+    num_circuit_weeks = len(set(get_week_label(d) for d in circuit_dates))
+    
+    pool_counts = pd.DataFrame(columns=['Name', 'Pool Practices'])
+    circuit_counts = pd.DataFrame(columns=['Name', 'Circuit Practices'])
     practice_counts = pd.DataFrame(columns=['Practice Date', 'Paddlers'])
     
     if not active_signups.empty:
-        total_practices_held = active_signups['Practice Date'].nunique()
-        attendance_counts = active_signups['Name'].value_counts().reset_index()
-        attendance_counts.columns = ['Name', 'Practices Attended']
+        # 2. Split active signups into Pool vs Circuit
+        pool_signups = active_signups[active_signups['Practice Date'].str.contains('[Pool]', regex=False)]
+        circuit_signups = active_signups[active_signups['Practice Date'].str.contains('[Circuit]', regex=False)]
+        
+        pool_counts = pool_signups['Name'].value_counts().reset_index()
+        pool_counts.columns = ['Name', 'Pool Practices']
+        
+        circuit_counts = circuit_signups['Name'].value_counts().reset_index()
+        circuit_counts.columns = ['Name', 'Circuit Practices']
+        
         practice_counts = active_signups.groupby('Practice Date').size().reset_index(name='Paddlers')
         
-    analytics_df = pd.merge(df_roster, attendance_counts, on='Name', how='left')
-    analytics_df['Practices Attended'] = analytics_df['Practices Attended'].fillna(0).astype(int)
+    # 3. Merge counts with the Master Roster
+    analytics_df = df_roster.copy()
+    analytics_df = pd.merge(analytics_df, pool_counts, on='Name', how='left')
+    analytics_df = pd.merge(analytics_df, circuit_counts, on='Name', how='left')
     
-    if total_practices_held > 0:
-        analytics_df['Attendance Rate'] = ((analytics_df['Practices Attended'] / total_practices_held) * 100).round(1).astype(str) + '%'
+    analytics_df['Pool Practices'] = analytics_df['Pool Practices'].fillna(0).astype(int)
+    analytics_df['Circuit Practices'] = analytics_df['Circuit Practices'].fillna(0).astype(int)
+    
+    # 4. Calculate Independent Attendance Rates (Allows >100% via Walk-ins)
+    if num_pool_weeks > 0:
+        analytics_df['Pool Attendance Rate'] = ((analytics_df['Pool Practices'] / num_pool_weeks) * 100).round(1).astype(str) + '%'
     else:
-        analytics_df['Attendance Rate'] = '0%'
+        analytics_df['Pool Attendance Rate'] = '0%'
+        
+    if num_circuit_weeks > 0:
+        analytics_df['Circuit Attendance Rate'] = ((analytics_df['Circuit Practices'] / num_circuit_weeks) * 100).round(1).astype(str) + '%'
+    else:
+        analytics_df['Circuit Attendance Rate'] = '0%'
 
-    display_cols = ['Name', 'True Side', 'Gender', 'Practices Attended', 'Attendance Rate']
-    extra_cols = [c for c in analytics_df.columns if c not in display_cols]
+    # 5. Reorganize Columns for the Master Database display
+    display_cols = ['Name', 'True Side', 'Gender', 'Pool Practices', 'Pool Attendance Rate', 'Circuit Practices', 'Circuit Attendance Rate']
+    extra_cols = [c for c in analytics_df.columns if c not in display_cols and c != 'Membership']
     analytics_df = analytics_df[display_cols + extra_cols]
 
     tab1, tab2, tab3 = st.tabs(["📊 Master Database", "🧩 Team Composition", "📈 Attendance Trends"])

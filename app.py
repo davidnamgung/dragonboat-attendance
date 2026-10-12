@@ -678,7 +678,6 @@ elif st.session_state.page == "Admin":
 
             st.divider()
             
-            st.markdown("### Edit or Remove Paddler")
             st.markdown("Select a paddler to update their information or permanently remove them from the active roster.")
             
             all_roster_names = sorted(df_roster['Name'].tolist()) if not df_roster.empty else []

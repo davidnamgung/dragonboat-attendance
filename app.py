@@ -387,28 +387,20 @@ elif st.session_state.page == "Admin":
                     st.rerun()
 
         with admin_tab1:
-            current_week_label = f"📅 Week of {effective_monday.strftime('%B %-d')} (Current Week)"
-            with st.expander(current_week_label, expanded=True):
+            with st.expander("📅 Current Week (Active)", expanded=True):
                 c1, c2, c3 = st.columns(3)
                 cols = [c1, c2, c3]
                 for idx, (ts_str, ts_dt) in enumerate(TIMESLOTS.items()):
                     with cols[idx]:
-                        st.markdown(f"#### {ts_str.split(' - ')[0]}\n{ts_str.split(' - ')[1]}")
-                        render_roster_card(ts_str, ['Active', 'Attended'])
+                        st.markdown(f"#### {ts_str.split(',')[0]}")
+                        render_admin_form(ts_str)
             
-            if historical_weeks:
+            if historical_dates:
                 st.divider()
-                st.markdown("### Historical Lineups")
-                for week_label, dates in historical_weeks.items():
-                    with st.expander(f"📅 {week_label}", expanded=False):
-                        cols = st.columns(len(dates) if len(dates) > 0 else 1)
-                        for idx, past_date in enumerate(dates):
-                            with cols[idx]:
-                                # Extract just the day/time for cleaner historical headers
-                                header_parts = past_date.split(' - ')
-                                clean_time = f"{header_parts[0].split('th ')[-1]} - {header_parts[1]}" if 'th ' in header_parts[0] else past_date
-                                st.markdown(f"#### {past_date.split(',')[0]}\n{clean_time}")
-                                render_roster_card(past_date, ['Active', 'Attended'])
+                st.markdown("### Edit Past Attendance")
+                for past_date in historical_dates:
+                    with st.expander(f"⚙️ Manage {past_date}", expanded=False):
+                        render_admin_form(past_date)
 
         with admin_tab2:
             st.markdown("### No-Show Tracking")

@@ -423,6 +423,14 @@ elif st.session_state.page == "Resources":
         """)
         
     st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- NEW: Mandatory Waiver Box ---
+    with st.container(border=True):
+        st.markdown("#### 📝 Mandatory Team Waiver")
+        st.caption("Please ensure you have filled out the official team waiver for the current season before attending any practices.")
+        st.link_button("Fill out Google Form Waiver", "https://docs.google.com/forms/d/e/1FAIpQLSdVb6vBQDv0YqJ8weO52RpT-ekvMumnIMSLVga2SLYBYlcukA/viewform?usp=publish-editor", use_container_width=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # 2. Resource Card Grid
     col1, col2 = st.columns(2)

@@ -1,6 +1,5 @@
 import streamlit as st
-import gspread
-from google.oauth2.service_account import Credentials
+from supabase import create_client, Client
 import pandas as pd
 from datetime import datetime, timedelta
 import pytz
@@ -12,145 +11,28 @@ st.set_page_config(page_title="McGill Dragon Boat Z Attendance", layout="wide", 
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-
-    [data-testid="stAppViewContainer"] {
-        background-color: #0e1117; 
-        color: #e0e0e0;
-        font-family: 'Inter', sans-serif;
-    }
-    [data-testid="stSidebar"] {
-        background-color: #16181c;
-        border-right: 1px solid #2b2d31;
-    }
-    
-    .main-title {
-        text-align: center;
-        font-family: 'Inter', sans-serif;
-        font-weight: 800;
-        font-size: 4rem;
-        background: -webkit-linear-gradient(45deg, #ff3333, #ff7a7a);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 0px;
-        padding-bottom: 0px;
-        letter-spacing: -1.5px;
-    }
-    .sub-title {
-        text-align: center;
-        font-family: 'Inter', sans-serif;
-        font-weight: 600;
-        font-size: 1.8rem;
-        color: #8b8d91;
-        margin-top: -5px;
-        margin-bottom: 30px;
-        letter-spacing: -0.5px;
-    }
-    .instructions {
-        text-align: center;
-        font-family: 'Inter', sans-serif;
-        font-size: 1.1rem;
-        color: #a0a0a5;
-        max-width: 850px;
-        margin: 0 auto;
-        line-height: 1.6;
-        background: #16181c;
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid #2b2d31;
-    }
-    
-    .stSelectbox label {
-        font-family: 'Inter', sans-serif !important;
-        font-size: 1.4rem !important;
-        font-weight: 600;
-        color: #ffffff !important;
-        text-align: center;
-    }
-    div[data-baseweb="select"] > div {
-        background-color: #1a1c23 !important;
-        border-radius: 12px !important;
-        border: 1px solid #3a3d45 !important;
-    }
-    
-    .stButton>button {
-        background-color: #ff3333 !important;
-        color: white !important;
-        height: 3.2rem;
-        font-size: 1.1rem;
-        font-weight: 600;
-        font-family: 'Inter', sans-serif;
-        border-radius: 12px;
-        border: None;
-        width: 100%;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 6px rgba(255, 51, 51, 0.2);
-    }
-    .stButton>button:hover { 
-        background-color: #ff4d4d !important; 
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(255, 51, 51, 0.3);
-    }
-    
-    .roster-card {
-        background-color: #16181c;
-        padding: 20px;
-        border-radius: 16px;
-        border: 1px solid #2b2d31;
-        border-top: 4px solid #ff3333;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-    .roster-title {
-        color: #ffffff;
-        font-weight: 600;
-        font-family: 'Inter', sans-serif;
-        font-size: 1.2rem;
-        margin-bottom: 12px;
-        border-bottom: 1px solid #2b2d31;
-        padding-bottom: 8px;
-    }
-    .paddler-list {
-        font-family: 'Inter', sans-serif;
-        font-size: 1.05rem;
-        line-height: 1.6;
-        color: #a0a0a5;
-    }
-    
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
-        background-color: transparent;
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 45px;
-        background-color: #16181c;
-        border-radius: 8px;
-        border: 1px solid #2b2d31;
-        padding: 10px 20px;
-        font-weight: 600;
-        font-family: 'Inter', sans-serif;
-        color: #8b8d91;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #ff3333 !important;
-        color: white !important;
-        border-color: #ff3333 !important;
-    }
-
-    @media (max-width: 768px) {
-        .main-title { font-size: 2.5rem; letter-spacing: -1px; }
-        .sub-title { font-size: 1.4rem; }
-        .instructions { font-size: 1rem; padding: 15px; text-align: left; }
-        .stSelectbox label { font-size: 1.2rem !important; }
-        .stTabs [data-baseweb="tab-list"] { display: flex; flex-direction: column; gap: 8px; }
-    }
+    [data-testid="stAppViewContainer"] { background-color: #0e1117; color: #e0e0e0; font-family: 'Inter', sans-serif; }
+    [data-testid="stSidebar"] { background-color: #16181c; border-right: 1px solid #2b2d31; }
+    .main-title { text-align: center; font-family: 'Inter', sans-serif; font-weight: 800; font-size: 4rem; background: -webkit-linear-gradient(45deg, #ff3333, #ff7a7a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px; padding-bottom: 0px; letter-spacing: -1.5px; }
+    .sub-title { text-align: center; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1.8rem; color: #8b8d91; margin-top: -5px; margin-bottom: 30px; letter-spacing: -0.5px; }
+    .instructions { text-align: center; font-family: 'Inter', sans-serif; font-size: 1.1rem; color: #a0a0a5; max-width: 850px; margin: 0 auto; line-height: 1.6; background: #16181c; padding: 20px; border-radius: 12px; border: 1px solid #2b2d31; }
+    .stSelectbox label { font-family: 'Inter', sans-serif !important; font-size: 1.4rem !important; font-weight: 600; color: #ffffff !important; text-align: center; }
+    div[data-baseweb="select"] > div { background-color: #1a1c23 !important; border-radius: 12px !important; border: 1px solid #3a3d45 !important; }
+    .stButton>button { background-color: #ff3333 !important; color: white !important; height: 3.2rem; font-size: 1.1rem; font-weight: 600; font-family: 'Inter', sans-serif; border-radius: 12px; border: None; width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(255, 51, 51, 0.2); }
+    .stButton>button:hover { background-color: #ff4d4d !important; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(255, 51, 51, 0.3); }
+    .roster-card { background-color: #16181c; padding: 20px; border-radius: 16px; border: 1px solid #2b2d31; border-top: 4px solid #ff3333; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+    .roster-title { color: #ffffff; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 1.2rem; margin-bottom: 12px; border-bottom: 1px solid #2b2d31; padding-bottom: 8px; }
+    .paddler-list { font-family: 'Inter', sans-serif; font-size: 1.05rem; line-height: 1.6; color: #a0a0a5; }
+    .stTabs [data-baseweb="tab-list"] { gap: 10px; background-color: transparent; }
+    .stTabs [data-baseweb="tab"] { height: 45px; background-color: #16181c; border-radius: 8px; border: 1px solid #2b2d31; padding: 10px 20px; font-weight: 600; font-family: 'Inter', sans-serif; color: #8b8d91; }
+    .stTabs [aria-selected="true"] { background-color: #ff3333 !important; color: white !important; border-color: #ff3333 !important; }
+    @media (max-width: 768px) { .main-title { font-size: 2.5rem; letter-spacing: -1px; } .sub-title { font-size: 1.4rem; } .instructions { font-size: 1rem; padding: 15px; text-align: left; } .stSelectbox label { font-size: 1.2rem !important; } .stTabs [data-baseweb="tab-list"] { display: flex; flex-direction: column; gap: 8px; } }
 </style>
 """, unsafe_allow_html=True)
 
 # --- 2. TIME GATE & DYNAMIC DATES ---
 tz = pytz.timezone("America/Toronto")
 now = datetime.now(tz)
-
-# Offset time by 20 hours to force Monday before 8 PM to align with the previous week's logic
 effective_now = now - timedelta(hours=20)
 effective_monday = effective_now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=effective_now.weekday())
 
@@ -174,33 +56,37 @@ elif 1 <= now.weekday() <= 4:
     else:
         is_open = True
 
-# --- 3. DATABASE CONNECTION & CACHING ---
+# --- 3. SUPABASE CONNECTION & CACHING ---
 @st.cache_resource
-def get_google_client():
-    scope = ['https://www.googleapis.com/auth/spreadsheets']
-    creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
-    return gspread.authorize(creds)
+def get_supabase_client() -> Client:
+    url = st.secrets["SUPABASE_URL"]
+    key = st.secrets["SUPABASE_KEY"]
+    return create_client(url, key)
 
-client = get_google_client()
-SHEET_ID = "1Ct8K5VzM3PcfJSbkok1InBRGr3yYnnjSp6VJU4OD8Og"
-sheet = client.open_by_key(SHEET_ID)
+supabase = get_supabase_client()
 
-roster_ws = sheet.worksheet("Roster")
-signups_ws = sheet.worksheet("Signups")
-waitlist_ws = sheet.worksheet("Waitlist")
-
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=60)
 def load_roster():
-    return pd.DataFrame(roster_ws.get_all_records())
+    res = supabase.table("roster").select("*").execute()
+    return pd.DataFrame(res.data) if res.data else pd.DataFrame(columns=["Name", "True Side", "Gender"])
 
 @st.cache_data(ttl=60)
 def load_live_data():
-    return pd.DataFrame(signups_ws.get_all_records()), pd.DataFrame(waitlist_ws.get_all_records())
+    signups = supabase.table("signups").select("*").execute()
+    waitlist = supabase.table("waitlist").select("*").execute()
+    df_s = pd.DataFrame(signups.data) if signups.data else pd.DataFrame(columns=["id", "Timestamp", "Practice Date", "Name", "Status"])
+    df_w = pd.DataFrame(waitlist.data) if waitlist.data else pd.DataFrame(columns=["id", "Timestamp", "Practice Date", "Name", "Side", "Status"])
+    return df_s, df_w
 
 df_roster = load_roster()
 df_signups, df_waitlist = load_live_data()
 
-# Parse historical dates safely
+if 'Gender' not in df_roster.columns:
+    df_roster['Gender'] = 'Unknown'
+else:
+    df_roster['Gender'] = df_roster['Gender'].replace(r'^\s*$', 'Unknown', regex=True).fillna('Unknown')
+    df_roster['Gender'] = df_roster['Gender'].replace({'Male': 'Open', 'Female': 'Women', 'M': 'Open', 'F': 'Women'})
+
 historical_dates = []
 if not df_signups.empty:
     all_dates = df_signups['Practice Date'].unique().tolist()
@@ -256,14 +142,12 @@ def render_roster_card(ts_str, status_filter=['Active', 'Attended']):
     </div>
     """, unsafe_allow_html=True)
     
-    # Shows the waitlist as long as 'Active' is one of the requested statuses
     if not df_waitlist.empty and 'Active' in status_filter: 
         wl = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
         wl_names = wl['Name'].tolist()
         if wl_names:
             st.markdown("**Waitlist:**")
             st.markdown(f"<div class='paddler-list'>" + "<br>".join([f"{i+1}. {n}" for i, n in enumerate(wl_names)]) + "</div>", unsafe_allow_html=True)
-
 
 # --- 5. PAGE 1: CURRENT LINEUPS ---
 if st.session_state.page == "Lineups":
@@ -291,7 +175,6 @@ elif st.session_state.page == "Analytics":
     st.divider()
     
     active_signups = df_signups[df_signups['Status'].isin(['Active', 'Attended'])] if not df_signups.empty else pd.DataFrame()
-    
     attendance_counts = pd.DataFrame(columns=['Name', 'Practices Attended'])
     total_practices_held = 0
     practice_counts = pd.DataFrame(columns=['Practice Date', 'Paddlers'])
@@ -330,7 +213,6 @@ elif st.session_state.page == "Analytics":
     with tab2:
         st.markdown("### Overall Composition")
         c1, c2 = st.columns(2)
-        
         def render_modern_bar(data_series, x_title, color_hex):
             df_chart = data_series.reset_index()
             df_chart.columns = [x_title, 'Count']
@@ -384,7 +266,7 @@ elif st.session_state.page == "Analytics":
         else:
             st.info("Not enough data yet. Complete a few practices to see trends!")
 
-# --- 7. PAGE 3: ADMIN DASHBOARD ---
+# --- 7. PAGE 3: ADMIN DASHBOARD (FRAGMENTED) ---
 elif st.session_state.page == "Admin":
     if not st.session_state.admin_authenticated:
         st.markdown('<h1 class="main-title">Admin Login</h1>', unsafe_allow_html=True)
@@ -404,6 +286,7 @@ elif st.session_state.page == "Admin":
         
         admin_tab1, admin_tab2 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log"])
         
+        @st.fragment
         def render_admin_form(ts_string, is_expander=False):
             if not df_signups.empty:
                 ts_active = df_signups[(df_signups['Practice Date'] == ts_string) & (df_signups['Status'] != 'Cancelled')]
@@ -417,18 +300,13 @@ elif st.session_state.page == "Admin":
                     checkbox_states = {}
                     for i, row in ts_active.iterrows():
                         is_checked = row['Status'] in ['Active', 'Attended']
-                        checkbox_states[i] = st.checkbox(f"{row['Name']} (Current: {row['Status']})", value=is_checked)
+                        checkbox_states[row['id']] = st.checkbox(f"{row['Name']} (Current: {row['Status']})", value=is_checked)
                         
                     st.markdown("<br>", unsafe_allow_html=True)
                     if st.form_submit_button("Submit Attendance", use_container_width=True):
-                        cells_to_update = []
-                        for row_index_in_df, is_present in checkbox_states.items():
+                        for record_id, is_present in checkbox_states.items():
                             new_status = "Attended" if is_present else "No-Show"
-                            actual_sheet_row = int(row_index_in_df) + 2 
-                            cells_to_update.append(gspread.Cell(row=actual_sheet_row, col=4, value=new_status))
-                            
-                        if cells_to_update:
-                            signups_ws.update_cells(cells_to_update)
+                            supabase.table("signups").update({"Status": new_status}).eq("id", record_id).execute()
                             
                         load_live_data.clear()
                         st.success(f"Records updated for {ts_string.split(',')[0]}.")
@@ -436,13 +314,10 @@ elif st.session_state.page == "Admin":
 
         with admin_tab1:
             st.markdown("### Weekly Confirmation")
-            st.caption("Uncheck the box for any paddler who did not show up. Submit to lock in the final roster.")
-            
             col1, col2 = st.columns(2)
             for idx, (ts_str, ts_dt) in enumerate(TIMESLOTS.items()):
                 target_col = col1 if idx == 0 else col2
                 with target_col:
-                    # Renders the full string instead of truncating at the comma
                     st.markdown(f"#### {ts_str}")
                     render_admin_form(ts_str)
             
@@ -456,23 +331,19 @@ elif st.session_state.page == "Admin":
         with admin_tab2:
             st.markdown("### No-Show Tracking")
             no_shows_df = df_signups[df_signups['Status'] == 'No-Show'] if not df_signups.empty else pd.DataFrame()
-            
             if no_shows_df.empty:
                 st.success("🎉 Amazing! Zero no-shows recorded so far.")
             else:
                 c1, c2 = st.columns([1, 2])
                 with c1:
-                    st.markdown("**Repeat Offenders**")
                     offenders = no_shows_df['Name'].value_counts().reset_index()
                     offenders.columns = ['Name', 'Missed Practices']
                     st.dataframe(offenders, use_container_width=True, hide_index=True)
-                    
                 with c2:
-                    st.markdown("**Complete Historical Log**")
                     log_display = no_shows_df[['Practice Date', 'Name']].sort_values(by='Practice Date', ascending=False)
                     st.dataframe(log_display, use_container_width=True, hide_index=True)
 
-# --- 8. PAGE 4: MAIN SIGN UP ---
+# --- 8. PAGE 4: MAIN SIGN UP (FRAGMENTED) ---
 elif st.session_state.page == "Sign Up":
     st.markdown('<h1 class="main-title">McGill Dragon Boat Z</h1>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Indoors Attendance 2026-2027</p>', unsafe_allow_html=True)
@@ -480,22 +351,14 @@ elif st.session_state.page == "Sign Up":
     if not is_open:
         st.info("🔒 Registration is currently closed. Sign-ups open every Monday at 8:00 PM.")
     else:
-        st.markdown("""
-        <div class="instructions">
-            Welcome to the sign-up portal. Please select your name below and choose your preferred timeslot. To ensure everyone gets water time, attendance is strictly limited to <strong>one practice per week</strong>. If your schedule changes, simply log back in and cancel your spot to instantly free it up for a teammate. You can view the live attendee list in the sidebar at any time.
-            <br><br>
-            Each session is capped at <strong>32 paddlers</strong> to maintain an even split of 16 Lefts and 16 Rights. If you paddle on both sides or do not have a set preference yet, the system will automatically allocate your seat to keep the boat balanced. 
-            <br><br>
-            If a practice reaches capacity, you will be added to a side-specific waitlist. Whenever a cancellation occurs, the system automatically promotes the next person in line based on a first-come, first-served order. You can also cancel your waitlist position directly from this portal.
-        </div>
-        """, unsafe_allow_html=True)
-    
+        st.markdown("""<div class="instructions">Welcome to the sign-up portal. Please select your name below and choose your preferred timeslot. To ensure everyone gets water time, attendance is strictly limited to <strong>one practice per week</strong>. If your schedule changes, simply log back in and cancel your spot to instantly free it up for a teammate. You can view the live attendee list in the sidebar at any time.<br><br>Each session is capped at <strong>32 paddlers</strong> to maintain an even split of 16 Lefts and 16 Rights. If you paddle on both sides or do not have a set preference yet, the system will automatically allocate your seat to keep the boat balanced.<br><br>If a practice reaches capacity, you will be added to a side-specific waitlist. Whenever a cancellation occurs, the system automatically promotes the next person in line based on a first-come, first-served order. You can also cancel your waitlist position directly from this portal.</div>""", unsafe_allow_html=True)
         st.divider()
-    
+        
         name_list = df_roster['Name'].tolist() if not df_roster.empty else []
         user_name = st.selectbox("Select your Full Name", options=name_list, index=None, placeholder="Start typing your name here...")
     
-        if user_name:
+        @st.fragment
+        def render_signup_portal(user_name):
             st.divider()
             user_side = df_roster.loc[df_roster['Name'] == user_name, 'True Side'].values[0]
             user_eff_side = 'Left' if user_side in ['Unknown', 'Ambidextrous'] else user_side
@@ -505,29 +368,22 @@ elif st.session_state.page == "Sign Up":
             for ts_str in TIMESLOTS.keys():
                 day_name = ts_str.split(',')[0]
                 
-                active_record = pd.DataFrame()
-                if not df_signups.empty:
-                    active_record = df_signups[(df_signups['Practice Date'] == ts_str) & (df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))]
-                    
-                wl_record = pd.DataFrame()
-                if not df_waitlist.empty:
-                    wl_record = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')]
+                active_record = df_signups[(df_signups['Practice Date'] == ts_str) & (df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()
+                wl_record = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')] if not df_waitlist.empty else pd.DataFrame()
                     
                 if not active_record.empty:
                     st.success(f"✅ You are actively signed up for **{day_name}**.")
                     if st.button(f"🚨 Cancel {day_name} Attendance", key=f"cancel_att_{ts_str}"):
-                        user_row_index = int(active_record.index[0]) + 2
-                        signups_ws.update_cell(user_row_index, 4, "Cancelled")
+                        record_id = int(active_record.iloc[0]['id'])
+                        supabase.table("signups").update({"Status": "Cancelled"}).eq("id", record_id).execute()
                         
                         if not df_waitlist.empty:
                             pending = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
                             for idx, row in pending.iterrows():
-                                pending_side = row['Side']
-                                if pending_side == user_eff_side or pending_side in ['Unknown', 'Ambidextrous']:
-                                    waitlist_ws.update_cell(int(row.name) + 2, 5, "Promoted")
-                                    signups_ws.append_row([str(now), ts_str, row['Name'], "Active"])
+                                if row['Side'] in [user_eff_side, 'Unknown', 'Ambidextrous']:
+                                    supabase.table("waitlist").update({"Status": "Promoted"}).eq("id", int(row['id'])).execute()
+                                    supabase.table("signups").insert({"Practice Date": ts_str, "Name": row['Name'], "Status": "Active"}).execute()
                                     break
-                                    
                         load_live_data.clear()
                         st.rerun()
                         
@@ -536,66 +392,45 @@ elif st.session_state.page == "Sign Up":
                     pos = pending_all['Name'].tolist().index(user_name) + 1
                     st.warning(f"⏳ You are **#{pos}** on the waitlist for **{day_name}**.")
                     if st.button(f"🚨 Cancel {day_name} Waitlist Position", key=f"cancel_wl_{ts_str}"):
-                        user_wl_row_index = int(wl_record.index[0]) + 2
-                        waitlist_ws.update_cell(user_wl_row_index, 5, "Cancelled")
-                        
+                        record_id = int(wl_record.iloc[0]['id'])
+                        supabase.table("waitlist").update({"Status": "Cancelled"}).eq("id", record_id).execute()
                         load_live_data.clear()
                         st.rerun()
                         
             st.divider()
             
-            available_timeslots = []
-            for ts in TIMESLOTS.keys():
-                is_in_active = not df_signups.empty and not df_signups[(df_signups['Practice Date'] == ts) & (df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))].empty
-                is_in_wl = not df_waitlist.empty and not df_waitlist[(df_waitlist['Practice Date'] == ts) & (df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')].empty
-                
-                if not is_in_active and not is_in_wl:
-                    available_timeslots.append(ts)
-                    
+            available_timeslots = [ts for ts in TIMESLOTS.keys() if (df_signups.empty or df_signups[(df_signups['Practice Date'] == ts) & (df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))].empty) and (df_waitlist.empty or df_waitlist[(df_waitlist['Practice Date'] == ts) & (df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')].empty)]
+            
             if available_timeslots:
                 st.markdown("### Sign Up for a Practice")
                 timeslot = st.radio("Select Practice:", available_timeslots)
                 target_dt = TIMESLOTS[timeslot] 
                 
                 active_all = df_signups[(df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()
-                user_active_timeslots = active_all['Practice Date'].tolist() if not active_all.empty else []
+                current_week_active = [ts for ts in (active_all['Practice Date'].tolist() if not active_all.empty else []) if ts in TIMESLOTS.keys()]
                 
-                can_signup = True
-                current_week_active = [ts for ts in user_active_timeslots if ts in TIMESLOTS.keys()]
-                
-                if len(current_week_active) >= 1:
-                    cutoff_time = target_dt - timedelta(hours=2)
-                    if now < cutoff_time:
-                        can_signup = False
-                        st.error("🔒 You are already signed up for a practice this week. You may only sign up for a second practice starting 2 hours before it begins.")
-                        
-                if can_signup:
-                    if not df_signups.empty:
-                        ts_active = df_signups[(df_signups['Practice Date'] == timeslot) & (df_signups['Status'].isin(['Active', 'Attended']))]
-                        merged = pd.merge(ts_active, df_roster, on="Name", how="left")
-                        left_count = len(merged[merged['True Side'].isin(['Left', 'Unknown', 'Ambidextrous'])])
-                        right_count = len(merged[merged['True Side'] == 'Right'])
-                        total_count = len(ts_active)
-                    else:
-                        left_count, right_count, total_count = 0, 0, 0
-                        
-                    boat_full = False
-                    if total_count >= 32:
-                        boat_full = True
-                    elif user_eff_side == 'Left' and left_count >= 16:
-                        boat_full = True
-                    elif user_eff_side == 'Right' and right_count >= 16:
-                        boat_full = True
+                if len(current_week_active) >= 1 and now < (target_dt - timedelta(hours=2)):
+                    st.error("🔒 You are already signed up for a practice this week. You may only sign up for a second practice starting 2 hours before it begins.")
+                else:
+                    ts_active = df_signups[(df_signups['Practice Date'] == timeslot) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()
+                    merged = pd.merge(ts_active, df_roster, on="Name", how="left") if not ts_active.empty else pd.DataFrame()
+                    left_count = len(merged[merged['True Side'].isin(['Left', 'Unknown', 'Ambidextrous'])]) if not merged.empty else 0
+                    right_count = len(merged[merged['True Side'] == 'Right']) if not merged.empty else 0
+                    
+                    boat_full = len(ts_active) >= 32 or (user_eff_side == 'Left' and left_count >= 16) or (user_eff_side == 'Right' and right_count >= 16)
                         
                     if st.button("Confirm Attendance", use_container_width=True):
                         if boat_full:
-                            waitlist_ws.append_row([str(now), timeslot, user_name, user_side, "Waiting"])
+                            supabase.table("waitlist").insert({"Practice Date": timeslot, "Name": user_name, "Side": user_side, "Status": "Waiting"}).execute()
                             st.warning(f"The {user_eff_side} side is full. You have been added to the waitlist!")
                         else:
-                            signups_ws.append_row([str(now), timeslot, user_name, "Active"])
+                            supabase.table("signups").insert({"Practice Date": timeslot, "Name": user_name, "Status": "Active"}).execute()
                             st.balloons()
                             
                         load_live_data.clear()
                         st.rerun()
             else:
                 st.info("You are currently signed up or waitlisted for all available practices this week.")
+
+        if user_name:
+            render_signup_portal(user_name)

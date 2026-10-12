@@ -470,9 +470,9 @@ elif st.session_state.page == "Sign Up":
                         can_signup = False
                         st.error("❌ Your current membership tier does not include Circuit Training.")
                     
-                    elif is_pool and active_pool_count >= 1 and now < (target_dt - timedelta(hours=2)):
+                    elif is_pool and active_pool_count >= 1:
                         can_signup = False
-                        st.error("🔒 You are already signed up for a pool practice this week. You may only sign up for a second pool practice starting 2 hours before it begins.")
+                        st.error("🔒 You are already signed up for a pool practice this week. Attendance is strictly limited to one pool session.")
                     
                     if can_signup:
                         ts_active = df_signups[(df_signups['Practice Date'] == timeslot) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()

@@ -96,14 +96,22 @@ def load_audit_log():
         
     return df_audit
 
-# --- NEW: MOVED TO GLOBAL SCOPE ---
 def get_week_label(date_str):
     match = re.search(r', ([A-Za-z]+ \d+)', date_str)
     if match:
         try:
-            dt = datetime.strptime(f"{match.group(1)} {now.year}", "%B %d %Y")
+            # Extract the month and day
+            extracted_date = match.group(1)
+            parsed_month = datetime.strptime(extracted_date.split()[0], "%B").month
+            
+            # If we are in early 2027 looking at late 2026, subtract a year
+            target_year = now.year
+            if now.month <= 3 and parsed_month >= 10:
+                target_year -= 1
+                
+            dt = datetime.strptime(f"{extracted_date} {target_year}", "%B %d %Y")
             monday = dt - timedelta(days=dt.weekday())
-            return f"Week of {monday.strftime('%B %-d')}"
+            return f"Week of {monday.strftime('%B %-d, %Y')}"
         except:
             pass
     return date_str

@@ -11,7 +11,7 @@ st.set_page_config(page_title="McGill Dragon Boat Z Attendance", layout="wide", 
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@600;700&display=swap');
     
     /* Background & Layout */
     [data-testid="stAppViewContainer"] { 
@@ -24,11 +24,11 @@ st.markdown("""
         backdrop-filter: blur(20px) !important; 
         border-right: 1px solid rgba(43, 45, 49, 0.5) !important; 
     }
-    
+
     hr { border: none !important; height: 1px !important; background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.5), transparent) !important; margin: 2rem 0 !important; }
 
     /* Typography */
-    .main-title { text-align: center; font-family: 'Inter', sans-serif; font-weight: 800; font-size: 4rem; background: -webkit-linear-gradient(45deg, #ff3333, #ff7a7a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px; padding-bottom: 0px; letter-spacing: -1.5px; filter: drop-shadow(0px 4px 15px rgba(255, 51, 51, 0.25)); }
+    .main-title { font-family: 'Teko', sans-serif; font-size: 5.5rem; text-transform: uppercase; ... }
     .sub-title { text-align: center; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1.8rem; color: #8b8d91; margin-top: -5px; margin-bottom: 30px; letter-spacing: -0.5px; }
     .instructions { text-align: center; font-family: 'Inter', sans-serif; font-size: 1.1rem; color: #a0a0a5; max-width: 850px; margin: 0 auto; line-height: 1.6; background: #16181c; padding: 20px; border-radius: 12px; border: 1px solid #2b2d31; }
     

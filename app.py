@@ -993,7 +993,10 @@ elif st.session_state.page == "Sign Up":
     st.markdown('<p class="sub-title">Indoors Attendance 2026-2027</p>', unsafe_allow_html=True)
 
     if not is_open:
-        st.info("🔒 Registration is currently closed. Sign-ups open every Monday at 8:00 PM.")
+        # Wraps the alert in a centered column layout matching the Admin page
+        c1, c2, c3 = st.columns([1, 2, 1])
+        with c2:
+            st.info("🔒 Registration is currently closed. Sign-ups open every Monday at 8:00 PM.")
     else:
         st.markdown("""<div class="instructions">Welcome to the sign-up portal. Please select your name below and choose your preferred timeslot. To ensure everyone gets water time, attendance is strictly limited to <strong>one pool practice per week</strong>. If your schedule changes, simply log back in and cancel your spot to instantly free it up for a teammate. You can view the live attendee list in the sidebar at any time.<br>
         <br>Each pool session is capped at <strong>32 paddlers</strong> to maintain an even split of 16 Lefts and 16 Rights. If you paddle on both sides or do not have a set preference yet, the system will automatically allocate your seat to keep the boat balanced.<br>

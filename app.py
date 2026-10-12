@@ -343,7 +343,7 @@ elif st.session_state.page == "Resources":
     st.markdown('<h1 class="main-title">Team Resources</h1>', unsafe_allow_html=True)
     st.divider()
     
-    st.markdown("### 📌 Important Links & Documents")
+    st.markdown("### 📌 Important Links & Documents (UNFINISHED)")
     st.markdown("<p style='color: #a0a0a5;'>Access the team handbook, technique references, and event calendars below.</p>", unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)

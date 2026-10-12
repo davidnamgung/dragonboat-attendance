@@ -380,7 +380,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    
+
     if st.button("Sign Up Portal", use_container_width=True):
         st.session_state.admin_authenticated = False
         st.session_state.page = "Sign Up"
@@ -1325,7 +1325,7 @@ elif st.session_state.page == "Sign Up":
                         else:
                             eff_side = user_side
                             
-                        boat_full = (is_circuit and len(ts_active) >= 30) or \
+                        boat_full = (is_circuit and len(ts_active) >=24) or \
                                     (is_pool and len(ts_active) >= 32) or \
                                     (is_pool and eff_side == 'Left' and current_left >= 16) or \
                                     (is_pool and eff_side == 'Right' and current_right >= 16)

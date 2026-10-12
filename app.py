@@ -414,8 +414,8 @@ elif st.session_state.page == "Analytics":
         analytics_df['Circuit Attendance Rate'] = '0%'
 
     # 5. Reorganize Columns for the Master Database display
-    display_cols = ['Name', 'True Side', 'Gender', 'Pool Practices', 'Pool Attendance Rate', 'Circuit Practices', 'Circuit Attendance Rate']
-    extra_cols = [c for c in analytics_df.columns if c not in display_cols and c != 'Membership']
+    display_cols = ['Name', 'Membership', 'True Side', 'Gender', 'Pool Practices', 'Pool Attendance Rate', 'Circuit Practices', 'Circuit Attendance Rate']
+    extra_cols = [c for c in analytics_df.columns if c not in display_cols]
     analytics_df = analytics_df[display_cols + extra_cols]
 
     tab1, tab2, tab3 = st.tabs(["📊 Master Database", "🧩 Team Composition", "📈 Attendance Trends"])
@@ -433,7 +433,7 @@ elif st.session_state.page == "Analytics":
 
     with tab2:
         st.markdown("### Overall Composition")
-        c1, c2 = st.columns(2)
+        c1, c2, c3 = st.columns(3)
         
         # Modern Donut Chart Function
         def render_modern_donut(data_series, category_title, color_range):
@@ -454,25 +454,31 @@ elif st.session_state.page == "Analytics":
                         domain=df_chart[category_title].tolist(),
                         range=color_range
                     ),
-                    legend=alt.Legend(title=category_title, titleColor="#ffffff", labelColor="#a0a0a5", orient="right")
+                    legend=alt.Legend(title=category_title, titleColor="#ffffff", labelColor="#a0a0a5", orient="bottom")
                 ),
                 tooltip=[category_title, 'Count']
-            ).properties(height=280).configure_view(strokeWidth=0)
+            ).properties(height=320).configure_view(strokeWidth=0)
             
             return chart
 
         # Aesthetic Color Palettes
         side_colors = ["#ff3333", "#ff7a7a", "#6c6f78", "#2b2d31"]
         gender_colors = ["#ff3333", "#8b8d91", "#3a3d45"]
+        mem_colors = ["#ff3333", "#ff7a7a", "#ff9e9e", "#6c6f78", "#2b2d31"]
 
         with c1:
-            st.markdown("<div class='roster-card'><h4 style='color:white;text-align:center;'>Total Side Distribution</h4>", unsafe_allow_html=True)
+            st.markdown("<div class='roster-card'><h4 style='color:white;text-align:center;'>Side Distribution</h4>", unsafe_allow_html=True)
             st.altair_chart(render_modern_donut(analytics_df['True Side'].value_counts(), 'Side', side_colors), use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
             
         with c2:
-            st.markdown("<div class='roster-card'><h4 style='color:white;text-align:center;'>Total Gender Distribution</h4>", unsafe_allow_html=True)
+            st.markdown("<div class='roster-card'><h4 style='color:white;text-align:center;'>Gender Distribution</h4>", unsafe_allow_html=True)
             st.altair_chart(render_modern_donut(analytics_df['Gender'].value_counts(), 'Gender', gender_colors), use_container_width=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with c3:
+            st.markdown("<div class='roster-card'><h4 style='color:white;text-align:center;'>Membership Tiers</h4>", unsafe_allow_html=True)
+            st.altair_chart(render_modern_donut(analytics_df['Membership'].value_counts(), 'Membership', mem_colors), use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
         st.divider()
@@ -892,6 +898,35 @@ elif st.session_state.page == "Admin":
             # Ensure columns exist in the dataframe to prevent errors before Supabase is updated
             if 'Waiver' not in df_roster.columns: df_roster['Waiver'] = False
             if 'Payment' not in df_roster.columns: df_roster['Payment'] = 'Unpaid'
+            
+            # --- NEW: Dashboard Circular Progress Trackers ---
+            total_members = len(df_roster) if not df_roster.empty else 1
+            waivers_done = len(df_roster[df_roster['Waiver'] == True])
+            fully_paid = len(df_roster[df_roster['Payment'] == 'Fully Paid'])
+            
+            waiver_pct = int((waivers_done / total_members) * 100) if not df_roster.empty else 0
+            payment_pct = int((fully_paid / total_members) * 100) if not df_roster.empty else 0
+            
+            st.markdown(f"""
+            <div style="display: flex; justify-content: space-evenly; background-color: rgba(22, 24, 28, 0.65); backdrop-filter: blur(12px); padding: 30px; border-radius: 16px; border: 1px solid rgba(43, 45, 49, 0.8); margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                <div style="text-align: center;">
+                    <div style="width: 130px; height: 130px; border-radius: 50%; background: conic-gradient(#00e676 {waiver_pct}%, #2b2d31 0); display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 20px rgba(0, 230, 118, 0.15);">
+                        <div style="width: 104px; height: 104px; border-radius: 50%; background-color: #16181c; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 2rem; font-weight: 800; color: #e0e0e0;">{waiver_pct}%</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; font-weight: 600; color: #a0a0a5; font-size: 1.1rem; letter-spacing: 0.5px;">Waivers Signed</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 130px; height: 130px; border-radius: 50%; background: conic-gradient(#00e676 {payment_pct}%, #2b2d31 0); display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 20px rgba(0, 230, 118, 0.15);">
+                        <div style="width: 104px; height: 104px; border-radius: 50%; background-color: #16181c; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 2rem; font-weight: 800; color: #e0e0e0;">{payment_pct}%</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; font-weight: 600; color: #a0a0a5; font-size: 1.1rem; letter-spacing: 0.5px;">Fully Paid</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
                 
             # Filter and reorder the display columns
             display_df = df_roster[['Name', 'True Side', 'Gender', 'Membership', 'Waiver', 'Payment']]

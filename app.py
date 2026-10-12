@@ -28,7 +28,28 @@ st.markdown("""
     hr { border: none !important; height: 1px !important; background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.5), transparent) !important; margin: 2rem 0 !important; }
 
     /* Typography */
-    .main-title { text-align: center; font-family: 'Teko', sans-serif; font-weight: 800; font-size: 5.5rem; text-transform: uppercase; background: -webkit-linear-gradient(45deg, #ff3333, #ff7a7a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px; padding-bottom: 0px; letter-spacing: -1.5px; filter: drop-shadow(0px 4px 15px rgba(255, 51, 51, 0.25)); }
+
+    /* Liquid Shimmer Title */
+    @keyframes textShine {
+        to { background-position: 200% center; }
+    }
+    .main-title { 
+        text-align: center; 
+        font-family: 'Teko', sans-serif; 
+        font-weight: 800; 
+        font-size: 5.5rem; 
+        text-transform: uppercase; 
+        /* The liquid gradient */
+        background: linear-gradient(to right, #ff3333 20%, #ff7a7a 40%, #ffffff 50%, #ff7a7a 60%, #ff3333 80%);
+        background-size: 200% auto; 
+        -webkit-background-clip: text; 
+        -webkit-text-fill-color: transparent; 
+        animation: textShine 6s linear infinite; /* Controls the speed of the shine */
+        margin-bottom: 0px; 
+        padding-bottom: 0px; 
+        letter-spacing: -1.5px; 
+        filter: drop-shadow(0px 4px 15px rgba(255, 51, 51, 0.25)); 
+    }
     .sub-title { text-align: center; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 2rem; color: #8b8d91; margin-top: -5px; margin-bottom: 30px; letter-spacing: -0.5px; }
     .instructions { text-align: center; font-family: 'Inter', sans-serif; font-size: 1.1rem; color: #a0a0a5; max-width: 850px; margin: 0 auto; line-height: 1.6; background: #16181c; padding: 20px; border-radius: 12px; border: 1px solid #2b2d31; }
     
@@ -121,6 +142,15 @@ st.markdown("""
         border-color: #ff3333 !important;
         color: #ff3333 !important;
         background-color: rgba(255, 51, 51, 0.05) !important;
+    }
+
+    /* Tactile Form Inputs */
+    [data-testid="stRadio"] label, [data-testid="stCheckbox"] label {
+        transition: color 0.2s ease, transform 0.2s ease;
+    }
+    [data-testid="stRadio"] label:hover, [data-testid="stCheckbox"] label:hover {
+        color: #ff7a7a !important;
+        transform: translateX(4px); /* Gently nudges the text to the right on hover */
     }
 
     /* 5. Waiver Box Highlight */
@@ -293,7 +323,7 @@ def render_card_header(ts_string):
         
         st.markdown(f"""
         <div style="margin-bottom: 15px;">
-            <div style="display: inline-block; background-color: #ff3333; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; letter-spacing: 1.5px; margin-bottom: 8px;">{type_val}</div>
+            <div style="display: inline-block; background-color: rgba(255, 51, 51, 0.15); border: 1px solid rgba(255, 51, 51, 0.5); box-shadow: 0 0 12px rgba(255, 51, 51, 0.3); color: #ff7a7a; padding: 4px 14px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; letter-spacing: 1.5px; margin-bottom: 8px;">{type_val}</div>
             <div style="color: #ffffff; font-weight: 600; font-size: 1.1rem; margin-top: 4px;">{date_val}</div>
             <div style="color: #a0a0a5; font-size: 0.95rem; margin-top: 2px;">{time_val}</div>
         </div>

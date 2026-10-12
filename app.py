@@ -82,6 +82,14 @@ def load_live_data():
     df_w = pd.DataFrame(waitlist.data) if waitlist.data else pd.DataFrame(columns=["id", "Timestamp", "Practice Date", "Name", "Side", "Status"])
     return df_s, df_w
 
+def log_action(action, details):
+    supabase.table("audit_log").insert({"Action": action, "Details": details}).execute()
+
+@st.cache_data(ttl=60)
+def load_audit_log():
+    res = supabase.table("audit_log").select("*").order("Timestamp", desc=True).execute()
+    return pd.DataFrame(res.data) if res.data else pd.DataFrame(columns=["id", "Timestamp", "Action", "Details"])
+
 df_roster = load_roster()
 df_signups, df_waitlist = load_live_data()
 
@@ -158,19 +166,19 @@ if st.session_state.page == "Lineups":
     st.markdown('<h1 class="main-title">Team Lineups</h1>', unsafe_allow_html=True)
     st.divider()
     
-    st.markdown("### This Week's Active Roster")
-    col1, col2 = st.columns(2)
-    for idx, (ts_str, ts_dt) in enumerate(TIMESLOTS.items()):
-        target_col = col1 if idx == 0 else col2
-        with target_col:
-            st.markdown(f"#### {ts_str}")
-            render_roster_card(ts_str, ['Active', 'Attended'])
+    with st.expander("📅 Current Week (Active)", expanded=True):
+        c1, c2, c3 = st.columns(3)
+        cols = [c1, c2, c3]
+        for idx, (ts_str, ts_dt) in enumerate(TIMESLOTS.items()):
+            with cols[idx]:
+                st.markdown(f"#### {ts_str.split(' - ')[0]}\n{ts_str.split(' - ')[1]}")
+                render_roster_card(ts_str, ['Active', 'Attended'])
             
     if historical_dates:
         st.divider()
         st.markdown("### Historical Lineups")
         for past_date in historical_dates:
-            with st.expander(f"🚣‍♂️ {past_date}"):
+            with st.expander(f"🚣‍♂️ {past_date}", expanded=False):
                 render_roster_card(past_date, ['Active', 'Attended'])
 
 # --- 6. PAGE 2: ANALYTICS DASHBOARD ---
@@ -288,75 +296,73 @@ elif st.session_state.page == "Admin":
         st.markdown('<h1 class="main-title">Admin Dashboard</h1>', unsafe_allow_html=True)
         st.divider()
         
-        admin_tab1, admin_tab2 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log"])
+        admin_tab1, admin_tab2, admin_tab3 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log"])
         
         @st.fragment
-        def render_admin_form(ts_string, is_expander=False):
-            if not df_signups.empty:
-                ts_active = df_signups[(df_signups['Practice Date'] == ts_string) & (df_signups['Status'] != 'Cancelled')]
-            else:
-                ts_active = pd.DataFrame()
+        def render_admin_form(ts_string):
+            ts_active = df_signups[(df_signups['Practice Date'] == ts_string) & (df_signups['Status'] != 'Cancelled')] if not df_signups.empty else pd.DataFrame()
             
-            # --- NEW: ADMIN WALK-IN ADDITION ---
-            with st.popover(f"➕ Add Walk-In to {ts_string.split(',')[0]}", use_container_width=True):
-                all_names = df_roster['Name'].tolist() if not df_roster.empty else []
-                current_names = ts_active['Name'].tolist() if not ts_active.empty else []
-                available_names = [n for n in all_names if n not in current_names]
-                
-                new_walkin = st.selectbox("Select Paddler:", available_names, key=f"walkin_{ts_string}", index=None)
-                if st.button("Add to Practice", key=f"walkin_btn_{ts_string}"):
-                    if new_walkin:
-                        supabase.table("signups").insert({"Practice Date": ts_string, "Name": new_walkin, "Status": "Active"}).execute()
-                        load_live_data.clear()
-                        st.rerun()
-
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            if ts_active.empty:
-                st.info("No records pending confirmation.")
-            else:
-                with st.form(key=f"att_form_{ts_string}"):
-                    checkbox_states = {}
+            with st.form(key=f"att_form_{ts_string}"):
+                checkbox_states = {}
+                if not ts_active.empty:
                     for i, row in ts_active.iterrows():
                         is_checked = row['Status'] in ['Active', 'Attended']
                         checkbox_states[row['id']] = st.checkbox(f"{row['Name']} (Current: {row['Status']})", value=is_checked)
+                else:
+                    st.info("No records pending confirmation.")
+                
+                st.markdown("---")
+                # Inline Walk-In Feature
+                all_names = df_roster['Name'].tolist() if not df_roster.empty else []
+                current_names = ts_active['Name'].tolist() if not ts_active.empty else []
+                available_names = [n for n in all_names if n not in current_names]
+                walkin_name = st.selectbox("➕ Add Walk-In (Optional)", available_names, index=None, placeholder="Select a name to append to today's list...")
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.form_submit_button("Submit Attendance & Walk-Ins", use_container_width=True):
+                    updates_made = False
+                    for record_id, is_present in checkbox_states.items():
+                        new_status = "Attended" if is_present else "No-Show"
+                        supabase.table("signups").update({"Status": new_status}).eq("id", record_id).execute()
+                        updates_made = True
                         
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    if st.form_submit_button("Submit Attendance", use_container_width=True):
-                        for record_id, is_present in checkbox_states.items():
-                            new_status = "Attended" if is_present else "No-Show"
-                            supabase.table("signups").update({"Status": new_status}).eq("id", record_id).execute()
-                            
+                    if walkin_name:
+                        supabase.table("signups").insert({"Practice Date": ts_string, "Name": walkin_name, "Status": "Attended"}).execute()
+                        log_action("Walk-In Added", f"{walkin_name} manually added to {ts_string}")
+                        updates_made = True
+                        
+                    if updates_made:
+                        log_action("Attendance Submitted", f"Bulk update processed for {ts_string}")
                         load_live_data.clear()
+                        load_audit_log.clear()
                         st.success(f"Records updated for {ts_string.split(',')[0]}.")
                         st.rerun()
             
-            # --- DELETE PRACTICE DATA BUTTON & WARNING WINDOW ---
-            st.markdown("<br>", unsafe_allow_html=True)
             with st.popover(f"🗑️ Delete {ts_string.split(',')[0]} Data", use_container_width=True):
-                st.error(f"**Warning:** This will permanently delete all signups and waitlist records for **{ts_string}**. This cannot be undone.")
-                if st.button("Yes, permanently delete", key=f"confirm_del_{ts_string}"):
+                st.error("Permanently delete all records for this date?")
+                if st.button("Confirm Delete", key=f"del_{ts_string}"):
                     supabase.table("signups").delete().eq("Practice Date", ts_string).execute()
                     supabase.table("waitlist").delete().eq("Practice Date", ts_string).execute()
-                    
+                    log_action("Practice Deleted", f"All data wiped for {ts_string}")
                     load_live_data.clear()
+                    load_audit_log.clear()
                     st.rerun()
 
         with admin_tab1:
-            st.markdown("### Weekly Confirmation")
-            col1, col2 = st.columns(2)
-            for idx, (ts_str, ts_dt) in enumerate(TIMESLOTS.items()):
-                target_col = col1 if idx == 0 else col2
-                with target_col:
-                    st.markdown(f"#### {ts_str}")
-                    render_admin_form(ts_str)
+            with st.expander("📅 Current Week (Active)", expanded=True):
+                c1, c2, c3 = st.columns(3)
+                cols = [c1, c2, c3]
+                for idx, (ts_str, ts_dt) in enumerate(TIMESLOTS.items()):
+                    with cols[idx]:
+                        st.markdown(f"#### {ts_str.split(',')[0]}")
+                        render_admin_form(ts_str)
             
             if historical_dates:
                 st.divider()
                 st.markdown("### Edit Past Attendance")
                 for past_date in historical_dates:
-                    with st.expander(f"⚙️ Manage {past_date}"):
-                        render_admin_form(past_date, is_expander=True)
+                    with st.expander(f"⚙️ Manage {past_date}", expanded=False):
+                        render_admin_form(past_date)
 
         with admin_tab2:
             st.markdown("### No-Show Tracking")
@@ -372,6 +378,16 @@ elif st.session_state.page == "Admin":
                 with c2:
                     log_display = no_shows_df[['Practice Date', 'Name']].sort_values(by='Practice Date', ascending=False)
                     st.dataframe(log_display, use_container_width=True, hide_index=True)
+
+        with admin_tab3:
+            st.markdown("### System Audit Log")
+            st.caption("Scroll through the table to view all historical modifications.")
+            df_audit = load_audit_log()
+            if not df_audit.empty:
+                # Streamlit's st.dataframe natively supports infinite virtual scrolling and pagination for large datasets
+                st.dataframe(df_audit[['Timestamp', 'Action', 'Details']], use_container_width=True, hide_index=True, height=500)
+            else:
+                st.info("No system actions logged yet.")
 
 # --- 8. PAGE 4: MAIN SIGN UP (FRAGMENTED) ---
 elif st.session_state.page == "Sign Up":

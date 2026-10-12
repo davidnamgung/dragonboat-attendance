@@ -387,7 +387,8 @@ elif st.session_state.page == "Admin":
                     st.rerun()
 
         with admin_tab1:
-            with st.expander("📅 Current Week (Active)", expanded=True):
+            current_week_label = f"📅 Week of {effective_monday.strftime('%B %-d')} (Current Week)"
+            with st.expander(current_week_label, expanded=True):
                 c1, c2, c3 = st.columns(3)
                 cols = [c1, c2, c3]
                 for idx, (ts_str, ts_dt) in enumerate(TIMESLOTS.items()):
@@ -395,12 +396,22 @@ elif st.session_state.page == "Admin":
                         st.markdown(f"#### {ts_str.split(',')[0]}")
                         render_admin_form(ts_str)
             
-            if historical_dates:
+            # --- UPDATED: Grouped Historical Admin View ---
+            if historical_weeks:
                 st.divider()
                 st.markdown("### Edit Past Attendance")
-                for past_date in historical_dates:
-                    with st.expander(f"⚙️ Manage {past_date}", expanded=False):
-                        render_admin_form(past_date)
+                for week_label, dates in historical_weeks.items():
+                    with st.expander(f"⚙️ Manage {week_label}", expanded=False):
+                        cols = st.columns(len(dates) if len(dates) > 0 else 1)
+                        for idx, past_date in enumerate(dates):
+                            with cols[idx]:
+                                # Clean up the header layout
+                                header_parts = past_date.split(' - ')
+                                clean_time = f"{header_parts[0].split('th ')[-1]} - {header_parts[1]}" if 'th ' in header_parts[0] else past_date
+                                st.markdown(f"#### {past_date.split(',')[0]}\n{clean_time}")
+                                
+                                # Render the functional admin form for this specific past date
+                                render_admin_form(past_date)
 
         with admin_tab2:
             st.markdown("### No-Show Tracking")

@@ -230,6 +230,15 @@ st.markdown("""
         color: #00e676;
     }
 
+    @keyframes borderRotate {
+    100% { filter: hue-rotate(360deg); }
+    }
+    .glowing-border-box {
+        border: 2px solid transparent;
+        background: linear-gradient(#16181c, #16181c) padding-box, linear-gradient(45deg, #ff3333, #ff7a7a, #2b2d31) border-box;
+        border-radius: 16px;
+    }   
+
 
 </style>
 """, unsafe_allow_html=True)
@@ -372,6 +381,13 @@ with st.sidebar:
         st.session_state.current_user = None  
         st.session_state.page = "Admin"
         st.rerun()
+
+    st.markdown("""
+    <div style="margin-top: 40px; padding: 12px; background: rgba(0, 230, 118, 0.05); border: 1px solid rgba(0, 230, 118, 0.2); border-radius: 10px; display: flex; align-items: center; gap: 10px;">
+        <div style="width: 8px; height: 8px; background-color: #00e676; border-radius: 50%; box-shadow: 0 0 8px #00e676; animation: pulseGlow 2s infinite;"></div>
+        <div style="font-size: 0.85rem; font-weight: 600; color: #00e676; letter-spacing: 0.5px;">DATABASE SYNCD</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 def render_card_header(ts_string):
     # This extracts: Group 1 (Date), Group 2 (Time Range), Group 3 (Type)

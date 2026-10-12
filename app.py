@@ -153,6 +153,24 @@ st.markdown("""
         transform: translateX(4px); /* Gently nudges the text to the right on hover */
     }
 
+    /* Magnetic Sidebar Navigation */
+    [data-testid="stSidebar"] [data-testid="baseButton-secondary"] {
+        background-color: transparent !important;
+        border: none !important;
+        border-left: 3px solid transparent !important;
+        border-radius: 0 12px 12px 0 !important;
+        justify-content: flex-start !important;
+        padding-left: 15px !important;
+        box-shadow: none !important;
+        animation: none !important; /* Removes the pulse from sidebar buttons */
+    }
+    [data-testid="stSidebar"] [data-testid="baseButton-secondary"]:hover {
+        background-color: rgba(255, 51, 51, 0.1) !important;
+        border-left: 3px solid #ff3333 !important;
+        color: #ffffff !important;
+        transform: translateX(6px) !important;
+    }
+
     /* 5. Waiver Box Highlight */
     [data-testid="stVerticalBlockBorderWrapper"]:has(.waiver-hook) {
         border-color: rgba(255, 51, 51, 0.6) !important;
@@ -496,15 +514,15 @@ elif st.session_state.page == "Analytics":
         if side_filter: filtered_df = filtered_df[filtered_df['True Side'].isin(side_filter)]
         if gender_filter: filtered_df = filtered_df[filtered_df['Gender'].isin(gender_filter)]
         
-        # --- 2. Styled Pandas Dataframe ---
+        # --- 2. Styled Pandas Dataframe with Interactive Hover ---
         styled_df = filtered_df.style.set_properties(**{
             'background-color': '#16181c',
             'color': '#a0a0a5',
             'border-color': '#2b2d31'
-        }).set_table_styles([{
-            'selector': 'th', 
-            'props': [('background-color', '#0e1117'), ('color', '#ffffff'), ('border-color', '#2b2d31')]
-        }])
+        }).set_table_styles([
+            {'selector': 'th', 'props': [('background-color', '#0e1117'), ('color', '#ffffff'), ('border-color', '#2b2d31')]},
+            {'selector': 'tr:hover td', 'props': [('background-color', 'rgba(255, 51, 51, 0.1) !important'), ('color', '#ffffff !important')]}
+        ])
         
         st.dataframe(styled_df, use_container_width=True, hide_index=True)
 
@@ -1124,10 +1142,16 @@ elif st.session_state.page == "Sign Up":
                 user_membership = str(user_data.get('Membership', 'Unknown')).strip()
                 user_eff_side = 'Left' if user_side in ['Unknown', 'Ambidextrous'] else user_side
                 
-                col1, col2 = st.columns([3, 1])
+                # Add vertical_alignment="center" to perfectly align the card with the update button
+                col1, col2 = st.columns([3, 1], vertical_alignment="center")
                 with col1:
-                    st.markdown(f"### Welcome, **{user_name}**")
-                    st.markdown(f"**Membership:** {user_membership} | **Current Side:** {user_side}")
+                    st.markdown(f"""
+                    <div style="background: linear-gradient(135deg, rgba(22, 24, 28, 0.8), rgba(255, 51, 51, 0.05)); backdrop-filter: blur(10px); padding: 20px 25px; border-radius: 16px; border: 1px solid rgba(255, 51, 51, 0.2); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); border-left: 4px solid #ff3333; animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+                        <div style="color: #ff7a7a; font-size: 0.85rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;">Verified Paddler</div>
+                        <div style="font-family: 'Teko', sans-serif; font-size: 2.8rem; font-weight: 800; color: white; line-height: 1.1;">{user_name}</div>
+                        <div style="color: #a0a0a5; font-size: 1.05rem; margin-top: 6px;"><strong>Tier:</strong> {user_membership} &nbsp;&bull;&nbsp; <strong>Side:</strong> {user_side}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
                 with col2:
                     with st.popover("🔄 Update Side", use_container_width=True):
                         new_side = st.radio("Select your True Side:", ["Left", "Right", "Ambidextrous", "Unknown"], index=["Left", "Right", "Ambidextrous", "Unknown"].index(user_side) if user_side in ["Left", "Right", "Ambidextrous", "Unknown"] else 3)

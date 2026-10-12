@@ -14,6 +14,24 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@600;700&display=swap');
     
     /* Background & Layout */
+
+    /* 1. Pure App Mode (Hide Streamlit Chrome) */
+    [data-testid="stHeader"] { display: none !important; }
+    [data-testid="stAppViewBlockContainer"] { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+    footer { display: none !important; }
+
+    /* 2. Cinematic Noise Overlay */
+    [data-testid="stAppViewContainer"]::after {
+        content: "";
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        /* Renders a microscopic SVG noise pattern */
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        opacity: 0.04; /* Barely visible, just enough for texture */
+        pointer-events: none; /* Ensures you can still click things underneath */
+        z-index: 9999;
+    }
+
     [data-testid="stAppViewContainer"] { 
         background: radial-gradient(circle at 50% 0%, rgba(255, 51, 51, 0.12) 0%, #0e1117 75%) !important; 
         color: #e0e0e0; 
@@ -54,6 +72,21 @@ st.markdown("""
     .instructions { text-align: center; font-family: 'Inter', sans-serif; font-size: 1.1rem; color: #a0a0a5; max-width: 850px; margin: 0 auto; line-height: 1.6; background: #16181c; padding: 20px; border-radius: 12px; border: 1px solid #2b2d31; }
     
     /* Inputs */
+
+    /* 3. Glassmorphic Dropdown Portals */
+    div[data-baseweb="popover"] > div {
+        background-color: rgba(22, 24, 28, 0.85) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(43, 45, 49, 0.8) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+    }
+    /* Style the hover state of items inside the dropdown list */
+    ul[role="listbox"] li:hover {
+        background-color: rgba(255, 51, 51, 0.15) !important;
+        color: #ff3333 !important;
+    }
+    
     .stSelectbox label { font-family: 'Inter', sans-serif !important; font-size: 1.4rem !important; font-weight: 600; color: #ffffff !important; text-align: center; }
     div[data-baseweb="select"] > div { background-color: #1a1c23 !important; border-radius: 12px !important; border: 1px solid #3a3d45 !important; }
     

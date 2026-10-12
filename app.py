@@ -466,6 +466,8 @@ elif st.session_state.page == "Analytics":
             st.altair_chart(render_modern_donut(analytics_df['Gender'].value_counts(), 'Gender', gender_colors), use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
+        st.divider()
+
         st.markdown("### Gender & Side Breakdown")
         c3, c4 = st.columns(2)
         side_categories = ['Left', 'Right', 'Ambidextrous', 'Unknown']
@@ -527,7 +529,7 @@ elif st.session_state.page == "Analytics":
                 st.warning("Please select at least one session to view trends.")
         else:
             st.info("Not enough data yet. Complete a few practices to see trends!")
-            
+
 # --- NEW PAGE: TEAM RESOURCES ---
 elif st.session_state.page == "Resources":
     st.markdown('<h1 class="main-title">Team Resources</h1>', unsafe_allow_html=True)

@@ -595,6 +595,8 @@ elif st.session_state.page == "Resources":
             st.link_button("Fill out Google Form Waiver", "https://docs.google.com/forms/d/e/1FAIpQLSdVb6vBQDv0YqJ8weO52RpT-ekvMumnIMSLVga2SLYBYlcukA/viewform?usp=publish-editor", use_container_width=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
+
+    st.divider()
     
     # 2. Resource Card Grid (Changed from 2 columns to 3 columns)
     col1, col2, col3 = st.columns(3)

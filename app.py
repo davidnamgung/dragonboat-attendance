@@ -425,24 +425,45 @@ elif st.session_state.page == "Analytics":
     with tab2:
         st.markdown("### Overall Composition")
         c1, c2 = st.columns(2)
-        def render_modern_bar(data_series, x_title, color_hex):
+        
+        # Modern Donut Chart Function
+        def render_modern_donut(data_series, category_title, color_range):
             df_chart = data_series.reset_index()
-            df_chart.columns = [x_title, 'Count']
-            return alt.Chart(df_chart).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
-                x=alt.X(x_title, sort=None, axis=alt.Axis(labelAngle=0, labelColor='#a0a0a5')),
-                y=alt.Y('Count', axis=alt.Axis(labelColor='#a0a0a5', gridColor='#2b2d31')),
-                color=alt.value(color_hex),
-                tooltip=[x_title, 'Count']
+            df_chart.columns = [category_title, 'Count']
+            
+            chart = alt.Chart(df_chart).mark_arc(
+                innerRadius=65, 
+                cornerRadius=6, 
+                stroke="#16181c", # Matches card background for negative space gaps
+                strokeWidth=3
+            ).encode(
+                theta=alt.Theta(field="Count", type="quantitative"),
+                color=alt.Color(
+                    field=category_title, 
+                    type="nominal", 
+                    scale=alt.Scale(
+                        domain=df_chart[category_title].tolist(),
+                        range=color_range
+                    ),
+                    legend=alt.Legend(title=category_title, titleColor="#ffffff", labelColor="#a0a0a5", orient="right")
+                ),
+                tooltip=[category_title, 'Count']
             ).properties(height=280).configure_view(strokeWidth=0)
+            
+            return chart
+
+        # Aesthetic Color Palettes
+        side_colors = ["#ff3333", "#ff7a7a", "#6c6f78", "#2b2d31"]
+        gender_colors = ["#ff3333", "#8b8d91", "#3a3d45"]
 
         with c1:
             st.markdown("<div class='roster-card'><h4 style='color:white;text-align:center;'>Total Side Distribution</h4>", unsafe_allow_html=True)
-            st.altair_chart(render_modern_bar(analytics_df['True Side'].value_counts(), 'Side', '#ff3333'), use_container_width=True)
+            st.altair_chart(render_modern_donut(analytics_df['True Side'].value_counts(), 'Side', side_colors), use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
             
         with c2:
             st.markdown("<div class='roster-card'><h4 style='color:white;text-align:center;'>Total Gender Distribution</h4>", unsafe_allow_html=True)
-            st.altair_chart(render_modern_bar(analytics_df['Gender'].value_counts(), 'Gender', '#a9a9a9'), use_container_width=True)
+            st.altair_chart(render_modern_donut(analytics_df['Gender'].value_counts(), 'Gender', gender_colors), use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("### Gender & Side Breakdown")
@@ -453,15 +474,59 @@ elif st.session_state.page == "Analytics":
             st.markdown("<div class='roster-card'><h4 style='color:white;text-align:center;'>Open Roster</h4>", unsafe_allow_html=True)
             open_df = analytics_df[analytics_df['Gender'] == 'Open']
             open_dist = open_df['True Side'].value_counts().reindex(side_categories, fill_value=0)
-            st.altair_chart(render_modern_bar(open_dist, 'Side', '#ff3333'), use_container_width=True)
+            st.altair_chart(render_modern_donut(open_dist, 'Side', side_colors), use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
             
         with c4:
             st.markdown("<div class='roster-card'><h4 style='color:white;text-align:center;'>Women Roster</h4>", unsafe_allow_html=True)
             women_df = analytics_df[analytics_df['Gender'] == 'Women']
             women_dist = women_df['True Side'].value_counts().reindex(side_categories, fill_value=0)
-            st.altair_chart(render_modern_bar(women_dist, 'Side', '#a9a9a9'), use_container_width=True)
+            st.altair_chart(render_modern_donut(women_dist, 'Side', side_colors), use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
+
+    with tab3:
+        st.markdown("### Historical Practice Turnout")
+        
+        if not active_signups.empty:
+            def get_session_type(d_str):
+                if "Thursday" in d_str: return "Thursday Pool"
+                elif "[Circuit]" in d_str: return "Friday Circuit"
+                elif "Friday" in d_str and "[Pool]" in d_str: return "Friday Pool"
+                return "Other"
+            
+            trend_df = active_signups.copy()
+            trend_df['Session'] = trend_df['Practice Date'].apply(get_session_type)
+            
+            valid_sessions = ["Thursday Pool", "Friday Circuit", "Friday Pool"]
+            sessions_available = [s for s in valid_sessions if s in trend_df['Session'].values]
+            
+            selected_sessions = st.multiselect("Filter by Session", sessions_available, default=sessions_available)
+            
+            if selected_sessions:
+                filtered_trend = trend_df[trend_df['Session'].isin(selected_sessions)]
+                
+                if not filtered_trend.empty:
+                    chart_data = filtered_trend.groupby(['Practice Date', 'Session']).size().reset_index(name='Paddlers')
+                    
+                    # Added interpolate='monotone' for smooth, organic curves instead of sharp angles
+                    chart = alt.Chart(chart_data).mark_line(point=True, strokeWidth=3, interpolate='monotone').encode(
+                        x=alt.X('Practice Date:N', sort=None, axis=alt.Axis(labelAngle=-45, labelColor='#a0a0a5')),
+                        y=alt.Y('Paddlers:Q', axis=alt.Axis(labelColor='#a0a0a5', gridColor='#2b2d31')),
+                        color=alt.Color('Session:N', scale=alt.Scale(
+                            domain=valid_sessions, 
+                            range=["#ff3333", "#6c6f78", "#ff7a7a"]
+                        )),
+                        tooltip=['Session', 'Practice Date', 'Paddlers']
+                    ).properties(height=350).configure_view(strokeWidth=0).configure_legend(
+                        titleColor='#ffffff', labelColor='#a0a0a5', orient='top'
+                    )
+                    st.altair_chart(chart, use_container_width=True)
+                else:
+                    st.info("No data available for the selected sessions.")
+            else:
+                st.warning("Please select at least one session to view trends.")
+        else:
+            st.info("Not enough data yet. Complete a few practices to see trends!")
 
     with tab3:
         st.markdown("### Historical Practice Turnout")

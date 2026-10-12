@@ -119,14 +119,17 @@ with st.sidebar:
         st.rerun()
     if st.button("Current Lineups", use_container_width=True):
         st.session_state.admin_authenticated = False
+        st.session_state.current_user = None  # Resets the portal login
         st.session_state.page = "Lineups"
         st.rerun()
     if st.button("Analytics Dashboard", use_container_width=True):
         st.session_state.admin_authenticated = False
+        st.session_state.current_user = None  # Resets the portal login
         st.session_state.page = "Analytics"
         st.rerun()
     if st.button("Admin Dashboard", use_container_width=True):
         st.session_state.admin_authenticated = False
+        st.session_state.current_user = None  # Resets the portal login
         st.session_state.page = "Admin"
         st.rerun()
 
@@ -370,13 +373,15 @@ elif st.session_state.page == "Admin":
             if no_shows_df.empty:
                 st.success("🎉 Amazing! Zero no-shows recorded so far.")
             else:
-                c1, c2 = st.columns([1, 2])
+                c1, c2 = st.columns([1, 2.5])
                 with c1:
                     offenders = no_shows_df['Name'].value_counts().reset_index()
-                    offenders.columns = ['Name', 'Missed Practices']
+                    offenders.columns = if st.button("Confirm Attendance", use_container_width=True):'Name', 'Missed Practices']
                     st.dataframe(offenders, use_container_width=True, hide_index=True)
                 with c2:
-                    log_display = no_shows_df[['Practice Date', 'Name']].sort_values(by='Practice Date', ascending=False)
+                    # Merge to bring in Side, Gender, and Membership
+                    enriched_no_shows = pd.merge(no_shows_df, df_roster, on="Name", how="left")
+                    log_display = enriched_no_shows[['Practice Date', 'Name', 'True Side', 'Gender', 'Membership']].sort_values(by='Practice Date', ascending=False)
                     st.dataframe(log_display, use_container_width=True, hide_index=True)
 
         with admin_tab3:
@@ -526,9 +531,19 @@ elif st.session_state.page == "Sign Up":
                                 log_action("Joined Waitlist", f"{user_name} joined the waitlist for {timeslot}")
                                 st.warning(f"The session is full. You have been added to the waitlist!")
                             else:
-                                supabase.table("signups").insert({"Practice Date": timeslot, "Name": user_name, "Status": "Active"}).execute()
-                                log_action("Signup Confirmed", f"{user_name} registered for {timeslot}")
-                                st.balloons()
+                                # Try to grab the seat. The database is the ultimate referee.
+                                try:
+                                    supabase.table("signups").insert({"Practice Date": timeslot, "Name": user_name, "Status": "Active"}).execute()
+                                    log_action("Signup Confirmed", f"{user_name} registered for {timeslot}")
+                                    st.balloons()
+                                except Exception as e:
+                                    # If the Supabase trigger rejects it because of a race condition
+                                    if 'BOAT_FULL' in str(e):
+                                        supabase.table("waitlist").insert({"Practice Date": timeslot, "Name": user_name, "Side": user_side, "Status": "Waiting"}).execute()
+                                        log_action("Joined Waitlist (Race Condition)", f"{user_name} was rerouted to waitlist for {timeslot}")
+                                        st.warning("Someone just grabbed the very last seat a millisecond before you! You have been automatically placed on the waitlist instead.")
+                                    else:
+                                        st.error(f"A database error occurred: {e}")
                                 
                             load_live_data.clear()
                             load_audit_log.clear()

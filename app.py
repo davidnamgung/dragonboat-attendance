@@ -432,7 +432,7 @@ elif st.session_state.page == "Resources":
         with st.container(border=True):
             st.markdown("#### ℹ️ INFORMATION SESSION")
             st.caption("Missed the Information Session?")
-            st.link_button("Open Slides", "https://docs.google.com/presentation", use_container_width=True)
+            st.link_button("Open Slides", "https://canva.link/bj2ock01gq6bp59", use_container_width=True)
             
         with st.container(border=True):
             st.markdown("#### 🚇 TRANSIT Guide")

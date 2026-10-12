@@ -139,17 +139,22 @@ with st.sidebar:
         st.rerun()
     if st.button("Current Lineups", use_container_width=True):
         st.session_state.admin_authenticated = False
-        st.session_state.current_user = None  # Resets the portal login
+        st.session_state.current_user = None  
         st.session_state.page = "Lineups"
         st.rerun()
     if st.button("Analytics Dashboard", use_container_width=True):
         st.session_state.admin_authenticated = False
-        st.session_state.current_user = None  # Resets the portal login
+        st.session_state.current_user = None  
         st.session_state.page = "Analytics"
+        st.rerun()
+    if st.button("Team Resources", use_container_width=True):
+        st.session_state.admin_authenticated = False
+        st.session_state.current_user = None  
+        st.session_state.page = "Resources"
         st.rerun()
     if st.button("Admin Dashboard", use_container_width=True):
         st.session_state.admin_authenticated = False
-        st.session_state.current_user = None  # Resets the portal login
+        st.session_state.current_user = None  
         st.session_state.page = "Admin"
         st.rerun()
 
@@ -333,6 +338,28 @@ elif st.session_state.page == "Analytics":
         else:
             st.info("Not enough data yet. Complete a few practices to see trends!")
 
+# --- NEW PAGE: TEAM RESOURCES ---
+elif st.session_state.page == "Resources":
+    st.markdown('<h1 class="main-title">Team Resources</h1>', unsafe_allow_html=True)
+    st.divider()
+    
+    st.markdown("### 📌 Important Links & Documents")
+    st.markdown("<p style='color: #a0a0a5;'>Access the team handbook, technique references, and event calendars below.</p>", unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    r_col1, r_col2, r_col3 = st.columns(3)
+    
+    with r_col1:
+        st.link_button("📘 Team Handbook", "https://docs.google.com/document", use_container_width=True)
+    with r_col2:
+        st.link_button("🎥 Paddling Technique Playlist", "https://youtube.com", use_container_width=True)
+    with r_col3:
+        st.link_button("👕 Team Merch Store", "https://example.com/merch", use_container_width=True)
+        
+    st.divider()
+    st.info("Additional resources and forms will be populated here as the season progresses.")
+
+    
 # --- 7. PAGE 3: ADMIN DASHBOARD (FRAGMENTED) ---
 elif st.session_state.page == "Admin":
     if not st.session_state.admin_authenticated:
@@ -350,20 +377,6 @@ elif st.session_state.page == "Admin":
     else:
         st.markdown('<h1 class="main-title">Admin Dashboard</h1>', unsafe_allow_html=True)
         st.divider()
-
-        # --- NEW: ADMIN RESOURCES SKELETON ---
-        st.markdown("### 📌 Quick Resources")
-        r_col1, r_col2, r_col3, r_col4 = st.columns(4)
-        with r_col1:
-            st.link_button("📊 Supabase Backend", "https://supabase.com", use_container_width=True)
-        with r_col2:
-            st.link_button("📝 Master Google Sheet", "https://docs.google.com/spreadsheets", use_container_width=True)
-        with r_col3:
-            st.link_button("📅 Team Calendar", "https://calendar.google.com", use_container_width=True)
-        with r_col4:
-            st.button("⚙️ Future Feature (WIP)", use_container_width=True, disabled=True)
-            
-        st.markdown("<br>", unsafe_allow_html=True)
         
         admin_tab1, admin_tab2, admin_tab3, admin_tab4 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log", "👥 Manage Roster"])
         

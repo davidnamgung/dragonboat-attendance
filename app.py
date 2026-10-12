@@ -23,7 +23,7 @@ st.markdown("""
     hr { border: none !important; height: 1px !important; background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.5), transparent) !important; margin: 2rem 0 !important; }
 
     /* Typography */
-    .main-title { text-align: center; font-family: 'Inter', sans-serif; font-weight: 800; font-size: 4rem; background: -webkit-linear-gradient(45deg, #ff3333, #ff7a7a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px; padding-bottom: 0px; letter-spacing: -1.5px; }
+    .main-title { text-align: center; font-family: 'Inter', sans-serif; font-weight: 800; font-size: 4rem; background: -webkit-linear-gradient(45deg, #ff3333, #ff7a7a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0px; padding-bottom: 0px; letter-spacing: -1.5px; filter: drop-shadow(0px 4px 15px rgba(255, 51, 51, 0.25)); }
     .sub-title { text-align: center; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1.8rem; color: #8b8d91; margin-top: -5px; margin-bottom: 30px; letter-spacing: -0.5px; }
     .instructions { text-align: center; font-family: 'Inter', sans-serif; font-size: 1.1rem; color: #a0a0a5; max-width: 850px; margin: 0 auto; line-height: 1.6; background: #16181c; padding: 20px; border-radius: 12px; border: 1px solid #2b2d31; }
     
@@ -58,7 +58,7 @@ st.markdown("""
     }
 
     /* Cards & Lists */
-    .roster-card { background-color: #16181c; padding: 20px; border-radius: 16px; border: 1px solid #2b2d31; border-top: 4px solid #ff3333; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); transition: all 0.3s ease; }
+    .roster-card { background-color: rgba(22, 24, 28, 0.65); backdrop-filter: blur(12px); padding: 20px; border-radius: 16px; border: 1px solid rgba(43, 45, 49, 0.8); border-top: 4px solid #ff3333; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; }
     .roster-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(255, 51, 51, 0.15); border-color: #4a4d55; }
     .roster-title { color: #ffffff; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 1.2rem; margin-bottom: 12px; border-bottom: 1px solid #2b2d31; padding-bottom: 8px; }
     .paddler-list { font-family: 'Inter', sans-serif; font-size: 1.05rem; line-height: 1.6; color: #a0a0a5; }
@@ -71,6 +71,18 @@ st.markdown("""
     
     /* Mobile Responsive */
     @media (max-width: 768px) { .main-title { font-size: 2.5rem; letter-spacing: -1px; } .sub-title { font-size: 1.4rem; } .instructions { font-size: 1rem; padding: 15px; text-align: left; } .stSelectbox label { font-size: 1.2rem !important; } .stTabs [data-baseweb="tab-list"] { display: flex; flex-direction: column; gap: 8px; } }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0e1117; }
+    ::-webkit-scrollbar-thumb { background: #2b2d31; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #ff3333; }
+
+    /* Clean Expanders */
+    [data-testid="stExpander"] { background-color: rgba(22, 24, 28, 0.4); border-radius: 12px; border: 1px solid #2b2d31; }
+    [data-testid="stExpander"] summary { transition: background-color 0.3s ease; }
+    [data-testid="stExpander"] summary:hover { background-color: rgba(43, 45, 49, 0.5); }
+
 </style>
 """, unsafe_allow_html=True)
 

@@ -311,6 +311,18 @@ elif st.session_state.page == "Admin":
                         load_live_data.clear()
                         st.success(f"Records updated for {ts_string.split(',')[0]}.")
                         st.rerun()
+            
+            # --- NEW: DELETE PRACTICE DATA BUTTON & WARNING WINDOW ---
+            st.markdown("<br>", unsafe_allow_html=True)
+            with st.popover(f"Delete {ts_string.split(',')[0]} Data", use_container_width=True):
+                st.error(f"**Warning:** This will permanently delete all signups and waitlist records for **{ts_string}**. This cannot be undone.")
+                if st.button("Yes, permanently delete", key=f"confirm_del_{ts_string}"):
+                    # Wipe data from both Supabase tables for this specific date
+                    supabase.table("signups").delete().eq("Practice Date", ts_string).execute()
+                    supabase.table("waitlist").delete().eq("Practice Date", ts_string).execute()
+                    
+                    load_live_data.clear()
+                    st.rerun()
 
         with admin_tab1:
             st.markdown("### Weekly Confirmation")

@@ -44,7 +44,7 @@ st.markdown("""
         background-size: 200% auto; 
         -webkit-background-clip: text; 
         -webkit-text-fill-color: transparent; 
-        animation: textShine 6s linear infinite; /* Controls the speed of the shine */
+        animation: textShine 3s linear infinite; /* Controls the speed of the shine */
         margin-bottom: 0px; 
         padding-bottom: 0px; 
         letter-spacing: -1.5px; 

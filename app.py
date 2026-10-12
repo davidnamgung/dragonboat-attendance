@@ -353,16 +353,47 @@ elif st.session_state.page == "Analytics":
 
     with tab3:
         st.markdown("### Historical Practice Turnout")
-        if not practice_counts.empty:
-            chart = alt.Chart(practice_counts).mark_area(
-                line={'color':'#ff3333'}, color=alt.Gradient(
-                    gradient='linear', stops=[alt.GradientStop(color='#ff3333', offset=0), alt.GradientStop(color='rgba(255, 51, 51, 0)', offset=1)], x1=1, x2=1, y1=1, y2=0)
-            ).encode(
-                x=alt.X('Practice Date:N', sort=None, axis=alt.Axis(labelAngle=-45, labelColor='#a0a0a5')),
-                y=alt.Y('Paddlers:Q', axis=alt.Axis(labelColor='#a0a0a5', gridColor='#2b2d31')),
-                tooltip=['Practice Date', 'Paddlers']
-            ).properties(height=350).configure_view(strokeWidth=0)
-            st.altair_chart(chart, use_container_width=True)
+        
+        if not active_signups.empty:
+            # 1. Categorize each practice date into its specific session type
+            def get_session_type(d_str):
+                if "Thursday" in d_str: return "Thursday Pool"
+                elif "[Circuit]" in d_str: return "Friday Circuit"
+                elif "Friday" in d_str and "[Pool]" in d_str: return "Friday Pool"
+                return "Other"
+            
+            trend_df = active_signups.copy()
+            trend_df['Session'] = trend_df['Practice Date'].apply(get_session_type)
+            
+            # 2. Build the multiselect filter
+            valid_sessions = ["Thursday Pool", "Friday Circuit", "Friday Pool"]
+            sessions_available = [s for s in valid_sessions if s in trend_df['Session'].values]
+            
+            selected_sessions = st.multiselect("Filter by Session", sessions_available, default=sessions_available)
+            
+            # 3. Render the interactive chart
+            if selected_sessions:
+                filtered_trend = trend_df[trend_df['Session'].isin(selected_sessions)]
+                
+                if not filtered_trend.empty:
+                    chart_data = filtered_trend.groupby(['Practice Date', 'Session']).size().reset_index(name='Paddlers')
+                    
+                    chart = alt.Chart(chart_data).mark_line(point=True, strokeWidth=3).encode(
+                        x=alt.X('Practice Date:N', sort=None, axis=alt.Axis(labelAngle=-45, labelColor='#a0a0a5')),
+                        y=alt.Y('Paddlers:Q', axis=alt.Axis(labelColor='#a0a0a5', gridColor='#2b2d31')),
+                        color=alt.Color('Session:N', scale=alt.Scale(
+                            domain=valid_sessions, 
+                            range=["#ff3333", "#a9a9a9", "#ff7a7a"]
+                        )),
+                        tooltip=['Session', 'Practice Date', 'Paddlers']
+                    ).properties(height=350).configure_view(strokeWidth=0).configure_legend(
+                        titleColor='#ffffff', labelColor='#a0a0a5', orient='top'
+                    )
+                    st.altair_chart(chart, use_container_width=True)
+                else:
+                    st.info("No data available for the selected sessions.")
+            else:
+                st.warning("Please select at least one session to view trends.")
         else:
             st.info("Not enough data yet. Complete a few practices to see trends!")
 

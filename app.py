@@ -468,7 +468,7 @@ def render_roster_card(ts_str, status_filter=['Active', 'Attended']):
             <div class='paddler-list'>{"<br>".join(lefts) if lefts else empty_state_html}</div>
         </div>
         <div style='width: 48%;'>
-            <div class='roster-title'>{pulse_dot} Left ({len(lefts)}/16)</div>
+            <div class='roster-title'>{pulse_dot} Right ({len(rights)}/16)</div>
             <div style="width: 100%; background-color: #2b2d31; border-radius: 4px; height: 6px; margin-top: -4px; margin-bottom: 12px;">
                 <div style="width: {right_pct}%; background-color: #ff3333; height: 100%; border-radius: 4px; transition: width 0.5s ease;"></div>
             </div>

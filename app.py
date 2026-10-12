@@ -580,6 +580,11 @@ elif st.session_state.page == "Resources":
             * **VP Logistics:** Avery Kim
             * **VP Fitness:** Orlando, Ceres Brunet, Houwen Yao, Kia Takhsha, Jennifer Tram Su
             """)
+            st.markdown("### DBZ Coaching Staff")
+            st.markdown("""
+            * **Carmen Sweetoo**
+            * **Feng Yang Chen**
+            """)
         
     st.markdown("<br>", unsafe_allow_html=True)
 

@@ -296,7 +296,22 @@ elif st.session_state.page == "Admin":
                 ts_active = df_signups[(df_signups['Practice Date'] == ts_string) & (df_signups['Status'] != 'Cancelled')]
             else:
                 ts_active = pd.DataFrame()
+            
+            # --- NEW: ADMIN WALK-IN ADDITION ---
+            with st.popover(f"➕ Add Walk-In to {ts_string.split(',')[0]}", use_container_width=True):
+                all_names = df_roster['Name'].tolist() if not df_roster.empty else []
+                current_names = ts_active['Name'].tolist() if not ts_active.empty else []
+                available_names = [n for n in all_names if n not in current_names]
                 
+                new_walkin = st.selectbox("Select Paddler:", available_names, key=f"walkin_{ts_string}", index=None)
+                if st.button("Add to Practice", key=f"walkin_btn_{ts_string}"):
+                    if new_walkin:
+                        supabase.table("signups").insert({"Practice Date": ts_string, "Name": new_walkin, "Status": "Active"}).execute()
+                        load_live_data.clear()
+                        st.rerun()
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            
             if ts_active.empty:
                 st.info("No records pending confirmation.")
             else:
@@ -316,12 +331,11 @@ elif st.session_state.page == "Admin":
                         st.success(f"Records updated for {ts_string.split(',')[0]}.")
                         st.rerun()
             
-            # --- NEW: DELETE PRACTICE DATA BUTTON & WARNING WINDOW ---
+            # --- DELETE PRACTICE DATA BUTTON & WARNING WINDOW ---
             st.markdown("<br>", unsafe_allow_html=True)
-            with st.popover(f"Delete {ts_string.split(',')[0]} Data", use_container_width=True):
+            with st.popover(f"🗑️ Delete {ts_string.split(',')[0]} Data", use_container_width=True):
                 st.error(f"**Warning:** This will permanently delete all signups and waitlist records for **{ts_string}**. This cannot be undone.")
                 if st.button("Yes, permanently delete", key=f"confirm_del_{ts_string}"):
-                    # Wipe data from both Supabase tables for this specific date
                     supabase.table("signups").delete().eq("Practice Date", ts_string).execute()
                     supabase.table("waitlist").delete().eq("Practice Date", ts_string).execute()
                     

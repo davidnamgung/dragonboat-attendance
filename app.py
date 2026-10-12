@@ -199,6 +199,14 @@ def load_live_data():
 
 df_roster = load_roster()
 df_signups, df_waitlist = load_live_data()
+
+# Parse historical dates safely
+historical_dates = []
+if not df_signups.empty:
+    all_dates = df_signups['Practice Date'].unique().tolist()
+    historical_dates = [d for d in all_dates if d not in TIMESLOTS.keys()]
+    historical_dates.reverse() 
+
 # --- 4. SESSION STATE & SIDEBAR ROUTING ---
 if 'page' not in st.session_state:
     st.session_state.page = "Sign Up"

@@ -15,7 +15,7 @@ st.markdown("""
     
     /* Background & Layout */
     [data-testid="stAppViewContainer"] { 
-        background: radial-gradient(circle at 50% 0%, rgba(255, 51, 51, 0.08) 0%, #0e1117 40%) !important; 
+        background: radial-gradient(circle at 50% 0%, rgba(255, 51, 51, 0.12) 0%, #0e1117 75%) !important; 
         color: #e0e0e0; 
         font-family: 'Inter', sans-serif; 
     }

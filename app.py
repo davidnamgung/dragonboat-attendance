@@ -89,7 +89,13 @@ def log_action(action, details):
 @st.cache_data(ttl=60)
 def load_audit_log():
     res = supabase.table("audit_log").select("*").order("Timestamp", desc=True).execute()
-    return pd.DataFrame(res.data) if res.data else pd.DataFrame(columns=["id", "Timestamp", "Action", "Details"])
+    df_audit = pd.DataFrame(res.data) if res.data else pd.DataFrame(columns=["id", "Timestamp", "Action", "Details"])
+    
+    if not df_audit.empty:
+        # Convert raw UTC database strings into readable Montreal time
+        df_audit['Timestamp'] = pd.to_datetime(df_audit['Timestamp']).dt.tz_convert('America/Toronto').dt.strftime('%b %d, %Y - %I:%M %p')
+        
+    return df_audit
 
 df_roster = load_roster()
 df_signups, df_waitlist = load_live_data()
@@ -437,7 +443,7 @@ elif st.session_state.page == "Admin":
         st.markdown('<h1 class="main-title">Admin Dashboard</h1>', unsafe_allow_html=True)
         st.divider()
         
-        admin_tab1, admin_tab2, admin_tab3, admin_tab4 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log", "👥 Manage Roster"])
+        admin_tab1, admin_tab2, admin_tab3, admin_tab4, admin_tab5 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log", "👥 Manage Roster", "💳 Waivers & Payments"])
         
         @st.fragment
         def render_admin_form(ts_string):
@@ -632,6 +638,59 @@ elif st.session_state.page == "Admin":
                         load_audit_log.clear()
                         st.rerun()
 
+        with admin_tab5:
+            st.markdown("### Financial & Waiver Tracking")
+            st.markdown("Check the boxes for completed waivers and use the dropdowns to track payments. Click Save when finished.")
+            
+            # Ensure columns exist in the dataframe to prevent errors before Supabase is updated
+            if 'Waiver' not in df_roster.columns: df_roster['Waiver'] = False
+            if 'Payment' not in df_roster.columns: df_roster['Payment'] = 'Unpaid'
+                
+            # Filter and reorder the display columns
+            display_df = df_roster[['Name', 'True Side', 'Gender', 'Membership', 'Waiver', 'Payment']]
+            
+            # Render an interactive, editable table
+            edited_roster = st.data_editor(
+                display_df,
+                column_config={
+                    "Waiver": st.column_config.CheckboxColumn("Waiver Completed", default=False),
+                    "Payment": st.column_config.SelectboxColumn("Payment Status", options=["Unpaid", "Partially Paid", "Fully Paid"], required=True),
+                    "Name": st.column_config.TextColumn("Name", disabled=True),
+                    "True Side": st.column_config.TextColumn("True Side", disabled=True),
+                    "Gender": st.column_config.TextColumn("Gender", disabled=True),
+                    "Membership": st.column_config.TextColumn("Membership", disabled=True)
+                },
+                use_container_width=True,
+                hide_index=True,
+                key="financial_editor",
+                height=500
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            if st.button("💾 Save Payment & Waiver Updates", use_container_width=True):
+                updates_made = False
+                
+                # Compare the edited table with the original database to find what changed
+                for idx, row in edited_roster.iterrows():
+                    orig_row = display_df.iloc[idx]
+                    
+                    if row['Waiver'] != orig_row['Waiver'] or row['Payment'] != orig_row['Payment']:
+                        supabase.table("roster").update({
+                            "Waiver": bool(row['Waiver']),
+                            "Payment": str(row['Payment'])
+                        }).eq("Name", row['Name']).execute()
+                        updates_made = True
+                
+                if updates_made:
+                    log_action("Financials Updated", "Admin modified roster payment/waiver statuses")
+                    load_roster.clear()
+                    load_audit_log.clear()
+                    st.success("Roster financials successfully saved to the database.")
+                    st.rerun()
+                else:
+                    st.info("No changes detected.")
+
 # --- 8. PAGE 4: MAIN SIGN UP (FRAGMENTED) ---
 elif st.session_state.page == "Sign Up":
     st.markdown('<h1 class="main-title">McGill Dragon Boat Z</h1>', unsafe_allow_html=True)
@@ -640,7 +699,9 @@ elif st.session_state.page == "Sign Up":
     if not is_open:
         st.info("🔒 Registration is currently closed. Sign-ups open every Monday at 8:00 PM.")
     else:
-        st.markdown("""<div class="instructions">Welcome to the sign-up portal. Please select your name below and choose your preferred timeslot. To ensure everyone gets water time, attendance is strictly limited to <strong>one pool practice per week</strong>. If your schedule changes, simply log back in and cancel your spot to instantly free it up for a teammate. You can view the live attendee list in the sidebar at any time.<br><br>Each pool session is capped at <strong>32 paddlers</strong> to maintain an even split of 16 Lefts and 16 Rights. If you paddle on both sides or do not have a set preference yet, the system will automatically allocate your seat to keep the boat balanced.<br><br>If a practice reaches capacity, you will be added to a side-specific waitlist. Whenever a cancellation occurs, the system automatically promotes the next person in line based on a first-come, first-served order. You can also cancel your waitlist position directly from this portal.</div>""", unsafe_allow_html=True)
+        st.markdown("""<div class="instructions">Welcome to the sign-up portal. Please select your name below and choose your preferred timeslot. To ensure everyone gets water time, attendance is strictly limited to <strong>one pool practice per week</strong>. If your schedule changes, simply log back in and cancel your spot to instantly free it up for a teammate. You can view the live attendee list in the sidebar at any time.<br>
+        <br>Each pool session is capped at <strong>32 paddlers</strong> to maintain an even split of 16 Lefts and 16 Rights. If you paddle on both sides or do not have a set preference yet, the system will automatically allocate your seat to keep the boat balanced.<br>
+        <br>If a practice reaches capacity, you will be added to a side-specific waitlist. Whenever a cancellation occurs, the system automatically promotes the next person in line based on a first-come, first-served order. You can also cancel your waitlist position directly from this portal.</div>""", unsafe_allow_html=True)
         st.divider()
         
         # --- NEW: User Login Flow ---

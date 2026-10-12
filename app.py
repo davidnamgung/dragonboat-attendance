@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import pytz
 import altair as alt
+import re
 
 # --- 1. THEME & PAGE CONFIG ---
 st.set_page_config(page_title="McGill Dragon Boat Z Attendance", layout="wide", initial_sidebar_state="expanded")
@@ -100,10 +101,29 @@ else:
     df_roster['Gender'] = df_roster['Gender'].replace({'Male': 'Open', 'Female': 'Women', 'M': 'Open', 'F': 'Women'})
 
 historical_dates = []
+historical_weeks = {}
+
 if not df_signups.empty:
     all_dates = df_signups['Practice Date'].unique().tolist()
     historical_dates = [d for d in all_dates if d not in TIMESLOTS.keys()]
     historical_dates.reverse() 
+    
+    def get_week_label(date_str):
+        match = re.search(r', ([A-Za-z]+ \d+)', date_str)
+        if match:
+            try:
+                dt = datetime.strptime(f"{match.group(1)} {now.year}", "%B %d %Y")
+                monday = dt - timedelta(days=dt.weekday())
+                return f"Week of {monday.strftime('%B %-d')}"
+            except:
+                pass
+        return date_str
+
+    for d in historical_dates:
+        w_label = get_week_label(d)
+        if w_label not in historical_weeks:
+            historical_weeks[w_label] = []
+        historical_weeks[w_label].append(d)
 
 # --- 4. SESSION STATE & SIDEBAR ROUTING ---
 if 'page' not in st.session_state:
@@ -137,8 +157,16 @@ def render_roster_card(ts_str, status_filter=['Active', 'Attended']):
     if not df_signups.empty:
         ts_active = df_signups[(df_signups['Practice Date'] == ts_str) & (df_signups['Status'].isin(status_filter))]
         merged = pd.merge(ts_active, df_roster, on="Name", how="left")
-        lefts = merged[merged['True Side'].isin(['Left', 'Unknown', 'Ambidextrous'])]['Name'].tolist()
+        lefts = merged[merged['True Side'] == 'Left']['Name'].tolist()
         rights = merged[merged['True Side'] == 'Right']['Name'].tolist()
+        ambis = merged[merged['True Side'].isin(['Unknown', 'Ambidextrous'])]['Name'].tolist()
+        
+        # Dynamically distribute Ambi/Unknown paddlers to balance the visual list
+        for name in ambis:
+            if len(lefts) <= len(rights):
+                lefts.append(name + " (A)")
+            else:
+                rights.append(name + " (A)")
     else:
         lefts, rights = [], []
         
@@ -163,13 +191,13 @@ def render_roster_card(ts_str, status_filter=['Active', 'Attended']):
         if wl_names:
             st.markdown("**Waitlist:**")
             st.markdown(f"<div class='paddler-list'>" + "<br>".join([f"{i+1}. {n}" for i, n in enumerate(wl_names)]) + "</div>", unsafe_allow_html=True)
-
 # --- 5. PAGE 1: CURRENT LINEUPS ---
 if st.session_state.page == "Lineups":
     st.markdown('<h1 class="main-title">Team Lineups</h1>', unsafe_allow_html=True)
     st.divider()
     
-    with st.expander("📅 Current Week (Active)", expanded=True):
+    current_week_label = f"📅 Week of {effective_monday.strftime('%B %-d')} (Current Week)"
+    with st.expander(current_week_label, expanded=True):
         c1, c2, c3 = st.columns(3)
         cols = [c1, c2, c3]
         for idx, (ts_str, ts_dt) in enumerate(TIMESLOTS.items()):
@@ -177,12 +205,19 @@ if st.session_state.page == "Lineups":
                 st.markdown(f"#### {ts_str.split(' - ')[0]}\n{ts_str.split(' - ')[1]}")
                 render_roster_card(ts_str, ['Active', 'Attended'])
             
-    if historical_dates:
+    if historical_weeks:
         st.divider()
         st.markdown("### Historical Lineups")
-        for past_date in historical_dates:
-            with st.expander(f"🚣‍♂️ {past_date}", expanded=False):
-                render_roster_card(past_date, ['Active', 'Attended'])
+        for week_label, dates in historical_weeks.items():
+            with st.expander(f"📅 {week_label}", expanded=False):
+                cols = st.columns(len(dates) if len(dates) > 0 else 1)
+                for idx, past_date in enumerate(dates):
+                    with cols[idx]:
+                        # Extract just the day/time for cleaner historical headers
+                        header_parts = past_date.split(' - ')
+                        clean_time = f"{header_parts[0].split('th ')[-1]} - {header_parts[1]}" if 'th ' in header_parts[0] else past_date
+                        st.markdown(f"#### {past_date.split(',')[0]}\n{clean_time}")
+                        render_roster_card(past_date, ['Active', 'Attended'])
 
 # --- 6. PAGE 2: ANALYTICS DASHBOARD ---
 elif st.session_state.page == "Analytics":
@@ -352,20 +387,28 @@ elif st.session_state.page == "Admin":
                     st.rerun()
 
         with admin_tab1:
-            with st.expander("📅 Current Week (Active)", expanded=True):
+            current_week_label = f"📅 Week of {effective_monday.strftime('%B %-d')} (Current Week)"
+            with st.expander(current_week_label, expanded=True):
                 c1, c2, c3 = st.columns(3)
                 cols = [c1, c2, c3]
                 for idx, (ts_str, ts_dt) in enumerate(TIMESLOTS.items()):
                     with cols[idx]:
-                        st.markdown(f"#### {ts_str.split(',')[0]}")
-                        render_admin_form(ts_str)
+                        st.markdown(f"#### {ts_str.split(' - ')[0]}\n{ts_str.split(' - ')[1]}")
+                        render_roster_card(ts_str, ['Active', 'Attended'])
             
-            if historical_dates:
+            if historical_weeks:
                 st.divider()
-                st.markdown("### Edit Past Attendance")
-                for past_date in historical_dates:
-                    with st.expander(f"⚙️ Manage {past_date}", expanded=False):
-                        render_admin_form(past_date)
+                st.markdown("### Historical Lineups")
+                for week_label, dates in historical_weeks.items():
+                    with st.expander(f"📅 {week_label}", expanded=False):
+                        cols = st.columns(len(dates) if len(dates) > 0 else 1)
+                        for idx, past_date in enumerate(dates):
+                            with cols[idx]:
+                                # Extract just the day/time for cleaner historical headers
+                                header_parts = past_date.split(' - ')
+                                clean_time = f"{header_parts[0].split('th ')[-1]} - {header_parts[1]}" if 'th ' in header_parts[0] else past_date
+                                st.markdown(f"#### {past_date.split(',')[0]}\n{clean_time}")
+                                render_roster_card(past_date, ['Active', 'Attended'])
 
         with admin_tab2:
             st.markdown("### No-Show Tracking")
@@ -519,10 +562,29 @@ elif st.session_state.page == "Sign Up":
                     if can_signup:
                         ts_active = df_signups[(df_signups['Practice Date'] == timeslot) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()
                         merged = pd.merge(ts_active, df_roster, on="Name", how="left") if not ts_active.empty else pd.DataFrame()
-                        left_count = len(merged[merged['True Side'].isin(['Left', 'Unknown', 'Ambidextrous'])]) if not merged.empty else 0
-                        right_count = len(merged[merged['True Side'] == 'Right']) if not merged.empty else 0
                         
-                        boat_full = len(ts_active) >= 32 or (is_pool and user_eff_side == 'Left' and left_count >= 16) or (is_pool and user_eff_side == 'Right' and right_count >= 16)
+                        # Count strict sides and unallocated ambis
+                        current_left = len(merged[merged['True Side'] == 'Left']) if not merged.empty else 0
+                        current_right = len(merged[merged['True Side'] == 'Right']) if not merged.empty else 0
+                        ambis = len(merged[merged['True Side'].isin(['Unknown', 'Ambidextrous'])]) if not merged.empty else 0
+                        
+                        # Mathematically distribute existing ambis
+                        for _ in range(ambis):
+                            if current_left <= current_right:
+                                current_left += 1
+                            else:
+                                current_right += 1
+                                
+                        # Dynamically route the user checking out
+                        if user_side in ['Unknown', 'Ambidextrous']:
+                            eff_side = 'Left' if current_left <= current_right else 'Right'
+                        else:
+                            eff_side = user_side
+                            
+                        boat_full = (is_circuit and len(ts_active) >= 30) or \
+                                    (is_pool and len(ts_active) >= 32) or \
+                                    (is_pool and eff_side == 'Left' and current_left >= 16) or \
+                                    (is_pool and eff_side == 'Right' and current_right >= 16)
                             
                         if st.button("Confirm Attendance", use_container_width=True):
                             if boat_full:

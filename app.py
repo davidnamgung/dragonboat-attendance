@@ -360,6 +360,9 @@ elif st.session_state.page == "Admin":
             with st.form(key=f"att_form_{ts_string}"):
                 checkbox_states = {}
                 if not ts_active.empty:
+                    # Sort the active signups alphabetically by name
+                    ts_active = ts_active.sort_values(by="Name")
+                    
                     for i, row in ts_active.iterrows():
                         is_checked = row['Status'] in ['Active', 'Attended']
                         checkbox_states[row['id']] = st.checkbox(f"{row['Name']} (Current: {row['Status']})", value=is_checked)
@@ -370,7 +373,9 @@ elif st.session_state.page == "Admin":
                 # Inline Walk-In Feature
                 all_names = df_roster['Name'].tolist() if not df_roster.empty else []
                 current_names = ts_active['Name'].tolist() if not ts_active.empty else []
-                available_names = [n for n in all_names if n not in current_names]
+                
+                # Sort the available walk-in dropdown names alphabetically 
+                available_names = sorted([n for n in all_names if n not in current_names])
                 walkin_name = st.selectbox("➕ Add Walk-In (Optional)", available_names, index=None, placeholder="Select a name to append to today's list...")
                 
                 st.markdown("<br>", unsafe_allow_html=True)

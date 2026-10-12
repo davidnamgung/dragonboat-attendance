@@ -83,6 +83,40 @@ st.markdown("""
     [data-testid="stExpander"] summary { transition: background-color 0.3s ease; }
     [data-testid="stExpander"] summary:hover { background-color: rgba(43, 45, 49, 0.5); }
 
+    /* --- ADVANCED MICRO-INTERACTIONS --- */
+    
+    /* 1. Custom Text Selection Highlight */
+    ::selection { 
+        background: rgba(255, 51, 51, 0.4); 
+        color: #ffffff; 
+    }
+    
+    /* 2. DBZ Focus Rings (Replaces Default Streamlit Blue) */
+    div[data-baseweb="input"] > div:focus-within, 
+    div[data-baseweb="select"] > div:focus-within {
+        border-color: #ff3333 !important;
+        box-shadow: 0 0 0 1px #ff3333 !important;
+    }
+    
+    /* 3. Interactive Resource Containers */
+    [data-testid="stVerticalBlockBorderWrapper"] { 
+        transition: all 0.3s ease; 
+    }
+    [data-testid="stVerticalBlockBorderWrapper"]:hover { 
+        transform: translateY(-2px); 
+        border-color: rgba(255, 51, 51, 0.5) !important; 
+        box-shadow: 0 4px 12px rgba(255, 51, 51, 0.1);
+    }
+
+    /* 4. Secondary Link Button Hover States */
+    [data-testid="baseButton-secondary"] { 
+        transition: all 0.2s ease; 
+    }
+    [data-testid="baseButton-secondary"]:hover {
+        border-color: #ff3333 !important;
+        color: #ff3333 !important;
+        background-color: rgba(255, 51, 51, 0.05) !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 

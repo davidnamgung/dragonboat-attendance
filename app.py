@@ -11,6 +11,20 @@ st.set_page_config(page_title="McGill Dragon Boat Z Attendance", layout="wide", 
 
 st.markdown("""
 <style>
+
+<script>
+    // Tracks mouse movement globally and updates custom properties for glowing cards
+    document.addEventListener('mousemove', e => {
+        for (const card of document.getElementsByClassName('roster-card')) {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            card.style.setProperty('--mouse-x', `${x}px`);
+            card.style.setProperty('--mouse-y', `${y}px`);
+        }
+    });
+</script>
+
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Teko:wght@600;700&display=swap');
     
     /* Background & Layout */
@@ -254,6 +268,7 @@ st.markdown("""
 
 </style>
 """, unsafe_allow_html=True)
+
 
 # --- 2. TIME GATE & DYNAMIC DATES ---
 tz = pytz.timezone("America/Toronto")
@@ -742,9 +757,9 @@ elif st.session_state.page == "Resources":
         
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- NEW: Mandatory Waiver Box (Centered and slightly constrained) ---
     w_c1, w_c2, w_c3 = st.columns([1, 4, 1])
     with w_c2:
+        st.markdown('<div class="glowing-border-box">', unsafe_allow_html=True)
         with st.container(border=True):
             st.markdown(
                 "<h4 style='display: inline-block; color: #ff3333; background-color: rgba(255, 51, 51, 0.1); padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255, 51, 51, 0.4); box-shadow: 0 0 10px rgba(255, 51, 51, 0.15); margin-bottom: 8px;'>📝 MANDATORY Team Waiver</h4>", 
@@ -752,8 +767,7 @@ elif st.session_state.page == "Resources":
             )
             st.caption("Please ensure you have filled out the official team waiver for the current season before attending any practices.")
             st.link_button("Fill out Google Form Waiver", "https://docs.google.com/forms/d/e/1FAIpQLSdVb6vBQDv0YqJ8weO52RpT-ekvMumnIMSLVga2SLYBYlcukA/viewform?usp=publish-editor", use_container_width=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.divider()
     

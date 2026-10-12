@@ -210,22 +210,31 @@ def render_roster_card(ts_str, status_filter=['Active', 'Attended']):
     else:
         lefts, rights = [], []
         
+    left_pct = min((len(lefts) / 16) * 100, 100)
+    right_pct = min((len(rights) / 16) * 100, 100)
+    
+    empty_state_html = "<span style='color: #4a4d55; font-style: italic;'>Seats Available</span>"
+    
     st.markdown(f"""
     <div class='roster-card'>
         <div style='display: flex; justify-content: space-between;'>
+            
             <div style='width: 48%;'>
                 <div class='roster-title'>Left ({len(lefts)}/16)</div>
-                <div class='paddler-list'>{"<br>".join(lefts) if lefts else "-"}</div>
+                <div style="width: 100%; background-color: #2b2d31; border-radius: 4px; height: 6px; margin-top: -4px; margin-bottom: 12px;">
+                    <div style="width: {left_pct}%; background-color: #ff3333; height: 100%; border-radius: 4px; transition: width 0.5s ease;"></div>
+                </div>
+                <div class='paddler-list'>{"<br>".join(lefts) if lefts else empty_state_html}</div>
             </div>
             
             <div style='width: 48%;'>
                 <div class='roster-title'>Right ({len(rights)}/16)</div>
-                <div class='paddler-list'>{"<br>".join(rights) if rights else "-"}</div>
+                <div style="width: 100%; background-color: #2b2d31; border-radius: 4px; height: 6px; margin-top: -4px; margin-bottom: 12px;">
+                    <div style="width: {right_pct}%; background-color: #ff3333; height: 100%; border-radius: 4px; transition: width 0.5s ease;"></div>
+                </div>
+                <div class='paddler-list'>{"<br>".join(rights) if rights else empty_state_html}</div>
             </div>
-
-            <div style="width: 100%; background-color: #2b2d31; border-radius: 4px; height: 6px; margin-top: 4px; margin-bottom: 12px;">
-            <div style="width: {(len(lefts)/16)*100}%; background-color: #ff3333; height: 100%; border-radius: 4px;"></div>
-            </div>
+            
         </div>
     </div>
     """, unsafe_allow_html=True)

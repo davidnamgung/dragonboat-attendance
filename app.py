@@ -563,8 +563,10 @@ elif st.session_state.page == "Resources":
 
     # --- NEW: Mandatory Waiver Box ---
     with st.container(border=True):
-        st.markdown("<div class='waiver-hook'></div>", unsafe_allow_html=True) # Invisible CSS anchor
-        st.markdown("#### 📝 MANDATORY Team Waiver")
+        st.markdown(
+            "<h4 style='display: inline-block; color: #ff3333; background-color: rgba(255, 51, 51, 0.1); padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255, 51, 51, 0.4); box-shadow: 0 0 10px rgba(255, 51, 51, 0.15); margin-bottom: 8px;'>📝 MANDATORY Team Waiver</h4>", 
+            unsafe_allow_html=True
+        )
         st.caption("Please ensure you have filled out the official team waiver for the current season before attending any practices.")
         st.link_button("Fill out Google Form Waiver", "https://docs.google.com/forms/d/e/1FAIpQLSdVb6vBQDv0YqJ8weO52RpT-ekvMumnIMSLVga2SLYBYlcukA/viewform?usp=publish-editor", use_container_width=True)
 

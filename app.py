@@ -992,12 +992,25 @@ elif st.session_state.page == "Sign Up":
     st.markdown('<h1 class="main-title">McGill Dragon Boat Z</h1>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Indoors Attendance 2026-2027</p>', unsafe_allow_html=True)
 
+    # 1. Moved instructions OUTSIDE the if/else block so they always appear
+    st.markdown("""<div class="instructions">Welcome to the sign-up portal. Please select your name below and choose your preferred timeslot. To ensure everyone gets water time, attendance is strictly limited to <strong>one pool practice per week</strong>. If your schedule changes, simply log back in and cancel your spot to instantly free it up for a teammate. You can view the live attendee list in the sidebar at any time.<br>
+    <br>Each pool session is capped at <strong>32 paddlers</strong> to maintain an even split of 16 Lefts and 16 Rights. If you paddle on both sides or do not have a set preference yet, the system will automatically allocate your seat to keep the boat balanced.<br>
+    <br>If a practice reaches capacity, you will be added to a side-specific waitlist. Whenever a cancellation occurs, the system automatically promotes the next person in line based on a first-come, first-served order. You can also cancel your waitlist position directly from this portal.</div>""", unsafe_allow_html=True)
+    st.divider()
+
     if not is_open:
         # Wraps the alert in a centered column layout matching the Admin page
         c1, c2, c3 = st.columns([1, 2, 1])
         with c2:
-            st.info("🔒 Registration is currently closed. Sign-ups open every Monday at 8:00 PM.")
+            # 2. Replaced native st.info with a custom centered glassmorphic alert
+            st.markdown("""
+            <div style="text-align: center; background-color: rgba(255, 51, 51, 0.1); padding: 15px 20px; border-radius: 12px; border: 1px solid rgba(255, 51, 51, 0.4); box-shadow: 0 4px 15px rgba(255, 51, 51, 0.15);">
+                <div style="font-size: 1.2rem; font-weight: 800; color: #ff3333; letter-spacing: 0.5px;">🔒 REGISTRATION CLOSED</div>
+                <div style="color: #e0e0e0; font-weight: 600; margin-top: 4px;">Sign-ups open every Monday at 8:00 PM.</div>
+            </div>
+            """, unsafe_allow_html=True)
     else:
+        # --- NEW: User Login Flow ---
         st.markdown("""<div class="instructions">Welcome to the sign-up portal. Please select your name below and choose your preferred timeslot. To ensure everyone gets water time, attendance is strictly limited to <strong>one pool practice per week</strong>. If your schedule changes, simply log back in and cancel your spot to instantly free it up for a teammate. You can view the live attendee list in the sidebar at any time.<br>
         <br>Each pool session is capped at <strong>32 paddlers</strong> to maintain an even split of 16 Lefts and 16 Rights. If you paddle on both sides or do not have a set preference yet, the system will automatically allocate your seat to keep the boat balanced.<br>
         <br>If a practice reaches capacity, you will be added to a side-specific waitlist. Whenever a cancellation occurs, the system automatically promotes the next person in line based on a first-come, first-served order. You can also cancel your waitlist position directly from this portal.</div>""", unsafe_allow_html=True)

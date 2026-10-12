@@ -153,6 +153,26 @@ with st.sidebar:
         st.session_state.page = "Admin"
         st.rerun()
 
+def render_card_header(ts_string):
+    # This extracts: Group 1 (Date), Group 2 (Time Range), Group 3 (Type)
+    match = re.match(r"(.*?)\s+(\d{1,2}:\d{2}\s*[AP]M\s*-\s*\d{1,2}:\d{2}\s*[AP]M)\s*\[(.*?)\]", ts_string)
+    
+    if match:
+        date_val = match.group(1)
+        time_val = match.group(2)
+        type_val = match.group(3).upper() # Capitalizes POOL or CIRCUIT
+        
+        st.markdown(f"""
+        <div style="margin-bottom: 15px;">
+            <div style="color: #ff3333; font-weight: 800; font-size: 1.3rem; letter-spacing: 1.5px;">{type_val}</div>
+            <div style="color: #ffffff; font-weight: 600; font-size: 1.1rem; margin-top: 4px;">{date_val}</div>
+            <div style="color: #a0a0a5; font-size: 0.95rem; margin-top: 2px;">{time_val}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Fallback just in case
+        st.markdown(f"#### {ts_string}")
+
 def render_roster_card(ts_str, status_filter=['Active', 'Attended']):
     if not df_signups.empty:
         ts_active = df_signups[(df_signups['Practice Date'] == ts_str) & (df_signups['Status'].isin(status_filter))]
@@ -202,7 +222,7 @@ if st.session_state.page == "Lineups":
         cols = [c1, c2, c3]
         for idx, (ts_str, ts_dt) in enumerate(TIMESLOTS.items()):
             with cols[idx]:
-                st.markdown(f"#### {ts_str.split(' - ')[0]}\n{ts_str.split(' - ')[1]}")
+                render_card_header(ts_str) # Replaces the messy markdown
                 render_roster_card(ts_str, ['Active', 'Attended'])
             
     if historical_weeks:
@@ -213,10 +233,7 @@ if st.session_state.page == "Lineups":
                 cols = st.columns(len(dates) if len(dates) > 0 else 1)
                 for idx, past_date in enumerate(dates):
                     with cols[idx]:
-                        # Extract just the day/time for cleaner historical headers
-                        header_parts = past_date.split(' - ')
-                        clean_time = f"{header_parts[0].split('th ')[-1]} - {header_parts[1]}" if 'th ' in header_parts[0] else past_date
-                        st.markdown(f"#### {past_date.split(',')[0]}\n{clean_time}")
+                        render_card_header(past_date) # Replaces the messy markdown
                         render_roster_card(past_date, ['Active', 'Attended'])
 
 # --- 6. PAGE 2: ANALYTICS DASHBOARD ---
@@ -393,10 +410,9 @@ elif st.session_state.page == "Admin":
                 cols = [c1, c2, c3]
                 for idx, (ts_str, ts_dt) in enumerate(TIMESLOTS.items()):
                     with cols[idx]:
-                        st.markdown(f"#### {ts_str.split(',')[0]}")
+                        render_card_header(ts_str) # Replaces the messy markdown
                         render_admin_form(ts_str)
             
-            # --- UPDATED: Grouped Historical Admin View ---
             if historical_weeks:
                 st.divider()
                 st.markdown("### Edit Past Attendance")
@@ -405,12 +421,7 @@ elif st.session_state.page == "Admin":
                         cols = st.columns(len(dates) if len(dates) > 0 else 1)
                         for idx, past_date in enumerate(dates):
                             with cols[idx]:
-                                # Clean up the header layout
-                                header_parts = past_date.split(' - ')
-                                clean_time = f"{header_parts[0].split('th ')[-1]} - {header_parts[1]}" if 'th ' in header_parts[0] else past_date
-                                st.markdown(f"#### {past_date.split(',')[0]}\n{clean_time}")
-                                
-                                # Render the functional admin form for this specific past date
+                                render_card_header(past_date) # Replaces the messy markdown
                                 render_admin_form(past_date)
 
         with admin_tab2:

@@ -217,9 +217,14 @@ def render_roster_card(ts_str, status_filter=['Active', 'Attended']):
                 <div class='roster-title'>Left ({len(lefts)}/16)</div>
                 <div class='paddler-list'>{"<br>".join(lefts) if lefts else "-"}</div>
             </div>
+            
             <div style='width: 48%;'>
                 <div class='roster-title'>Right ({len(rights)}/16)</div>
                 <div class='paddler-list'>{"<br>".join(rights) if rights else "-"}</div>
+            </div>
+
+            <div style="width: 100%; background-color: #2b2d31; border-radius: 4px; height: 6px; margin-top: 4px; margin-bottom: 12px;">
+            <div style="width: {(len(lefts)/16)*100}%; background-color: #ff3333; height: 100%; border-radius: 4px;"></div>
             </div>
         </div>
     </div>

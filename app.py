@@ -11,6 +11,7 @@ st.set_page_config(page_title="McGill Dragon Boat Z Attendance", layout="wide", 
 st.markdown("""
 <style>
     header {visibility: hidden;}
+    
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
     [data-testid="stAppViewContainer"] { background-color: #0e1117; color: #e0e0e0; font-family: 'Inter', sans-serif; }
     [data-testid="stSidebar"] { background-color: #16181c; border-right: 1px solid #2b2d31; }

@@ -370,6 +370,17 @@ if 'admin_authenticated' not in st.session_state:
 
 with st.sidebar:
     st.header("Navigation")
+
+    # --- Quick UI Upgrade: Live Activity Pill ---
+    active_count = len(df_signups[df_signups['Status'].isin(['Active', 'Attended'])]) if not df_signups.empty else 0
+    st.markdown(f"""
+    <div style="background: rgba(255, 51, 51, 0.08); border: 1px solid rgba(255, 51, 51, 0.2); border-radius: 8px; padding: 8px 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.8rem; font-weight: 600; color: #a0a0a5; text-transform: uppercase; letter-spacing: 0.5px;">Active Signups</span>
+        <span style="background-color: #ff3333; color: white; font-weight: 800; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; box-shadow: 0 0 8px rgba(255,51,51,0.4);">{active_count}</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    
     if st.button("Sign Up Portal", use_container_width=True):
         st.session_state.admin_authenticated = False
         st.session_state.page = "Sign Up"

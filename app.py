@@ -29,6 +29,8 @@ st.markdown("""
     .stTabs [data-baseweb="tab"] { height: 45px; background-color: #16181c; border-radius: 8px; border: 1px solid #2b2d31; padding: 10px 20px; font-weight: 600; font-family: 'Inter', sans-serif; color: #8b8d91; }
     .stTabs [aria-selected="true"] { background-color: #ff3333 !important; color: white !important; border-color: #ff3333 !important; }
     @media (max-width: 768px) { .main-title { font-size: 2.5rem; letter-spacing: -1px; } .sub-title { font-size: 1.4rem; } .instructions { font-size: 1rem; padding: 15px; text-align: left; } .stSelectbox label { font-size: 1.2rem !important; } .stTabs [data-baseweb="tab-list"] { display: flex; flex-direction: column; gap: 8px; } }
+    .roster-card { transition: all 0.3s ease; }
+.roster-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(255, 51, 51, 0.15); border-color: #4a4d55; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -182,7 +184,7 @@ def render_card_header(ts_string):
         
         st.markdown(f"""
         <div style="margin-bottom: 15px;">
-            <div style="color: #ff3333; font-weight: 800; font-size: 1.3rem; letter-spacing: 1.5px;">{type_val}</div>
+            <div style="display: inline-block; background-color: #ff3333; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; letter-spacing: 1.5px; margin-bottom: 8px;">{type_val}</div>
             <div style="color: #ffffff; font-weight: 600; font-size: 1.1rem; margin-top: 4px;">{date_val}</div>
             <div style="color: #a0a0a5; font-size: 0.95rem; margin-top: 2px;">{time_val}</div>
         </div>

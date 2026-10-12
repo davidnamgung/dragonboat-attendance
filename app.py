@@ -441,6 +441,7 @@ elif st.session_state.page == "Sign Up":
                         new_side = st.radio("Select your True Side:", ["Left", "Right", "Ambidextrous", "Unknown"], index=["Left", "Right", "Ambidextrous", "Unknown"].index(user_side) if user_side in ["Left", "Right", "Ambidextrous", "Unknown"] else 3)
                         if st.button("Save", use_container_width=True):
                             supabase.table("roster").update({"True Side": new_side}).eq("Name", user_name).execute()
+                            log_action("Side Updated", f"{user_name} updated their true side to {new_side}")
                             load_roster.clear()
                             st.rerun()
                 st.divider()
@@ -456,6 +457,7 @@ elif st.session_state.page == "Sign Up":
                         if st.button(f"🚨 Cancel {day_name} Attendance", key=f"cancel_att_{ts_str}"):
                             record_id = int(active_record.iloc[0]['id'])
                             supabase.table("signups").update({"Status": "Cancelled"}).eq("id", record_id).execute()
+                            log_action("Attendance Cancelled", f"{user_name} cancelled their spot for {day_name}")
                             
                             if not df_waitlist.empty:
                                 pending = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
@@ -463,8 +465,11 @@ elif st.session_state.page == "Sign Up":
                                     if row['Side'] in [user_eff_side, 'Unknown', 'Ambidextrous'] or "[Circuit]" in ts_str:
                                         supabase.table("waitlist").update({"Status": "Promoted"}).eq("id", int(row['id'])).execute()
                                         supabase.table("signups").insert({"Practice Date": ts_str, "Name": row['Name'], "Status": "Active"}).execute()
+                                        log_action("Waitlist Promotion", f"{row['Name']} was automatically promoted to Active for {day_name}")
                                         break
+                                        
                             load_live_data.clear()
+                            load_audit_log.clear()
                             st.rerun()
                             
                     elif not wl_record.empty:
@@ -474,7 +479,10 @@ elif st.session_state.page == "Sign Up":
                         if st.button(f"🚨 Cancel {day_name} Waitlist", key=f"cancel_wl_{ts_str}"):
                             record_id = int(wl_record.iloc[0]['id'])
                             supabase.table("waitlist").update({"Status": "Cancelled"}).eq("id", record_id).execute()
+                            log_action("Waitlist Cancelled", f"{user_name} left the waitlist for {day_name}")
+                            
                             load_live_data.clear()
+                            load_audit_log.clear()
                             st.rerun()
                             
                 st.divider()
@@ -515,12 +523,15 @@ elif st.session_state.page == "Sign Up":
                         if st.button("Confirm Attendance", use_container_width=True):
                             if boat_full:
                                 supabase.table("waitlist").insert({"Practice Date": timeslot, "Name": user_name, "Side": user_side, "Status": "Waiting"}).execute()
+                                log_action("Joined Waitlist", f"{user_name} joined the waitlist for {timeslot}")
                                 st.warning(f"The session is full. You have been added to the waitlist!")
                             else:
                                 supabase.table("signups").insert({"Practice Date": timeslot, "Name": user_name, "Status": "Active"}).execute()
+                                log_action("Signup Confirmed", f"{user_name} registered for {timeslot}")
                                 st.balloons()
                                 
                             load_live_data.clear()
+                            load_audit_log.clear()
                             st.rerun()
                 else:
                     st.info("You are currently signed up or waitlisted for all available practices this week.")

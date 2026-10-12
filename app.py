@@ -472,7 +472,6 @@ elif st.session_state.page == "Admin":
                     if new_name.strip() == "":
                         st.error("Please enter a valid name.")
                     else:
-                        # Prevent duplicate entries that would crash the database
                         existing_names = df_roster['Name'].str.lower().tolist() if not df_roster.empty else []
                         if new_name.strip().lower() in existing_names:
                             st.error(f"❌ {new_name} is already in the roster.")
@@ -489,6 +488,31 @@ elif st.session_state.page == "Admin":
                             load_audit_log.clear()
                             st.success(f"🎉 {new_name} has been added and can now access the sign-up portal!")
                             st.rerun()
+
+            st.divider()
+            
+            st.markdown("### Remove Paddler")
+            st.markdown("Select a paddler to permanently remove them from the active roster.")
+            
+            all_roster_names = sorted(df_roster['Name'].tolist()) if not df_roster.empty else []
+            remove_name = st.selectbox("Select Paddler to Remove", all_roster_names, index=None, placeholder="Search for a name...")
+            
+            if remove_name:
+                with st.popover(f"🗑️ Remove {remove_name}", use_container_width=True):
+                    st.error(f"**Warning:** This will permanently delete **{remove_name}** from the roster database and instantly wipe out any active sign-ups or waitlist queue positions they currently hold. This cannot be undone.")
+                    if st.button("Confirm Permanent Removal", key=f"confirm_remove_{remove_name}"):
+                        # 1. Delete from main roster
+                        supabase.table("roster").delete().eq("Name", remove_name).execute()
+                        
+                        # 2. Wipe their ghost records to prevent UI bugs
+                        supabase.table("signups").delete().eq("Name", remove_name).execute()
+                        supabase.table("waitlist").delete().eq("Name", remove_name).execute()
+                        
+                        log_action("Roster Removal", f"{remove_name} was permanently removed from the system.")
+                        load_roster.clear()
+                        load_live_data.clear()
+                        load_audit_log.clear()
+                        st.rerun()
 
 # --- 8. PAGE 4: MAIN SIGN UP (FRAGMENTED) ---
 elif st.session_state.page == "Sign Up":

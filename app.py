@@ -408,22 +408,70 @@ elif st.session_state.page == "Resources":
     st.markdown('<h1 class="main-title">Team Resources</h1>', unsafe_allow_html=True)
     st.divider()
     
-    st.markdown("### 📌 Important Links & Documents (UNFINISHED)")
-    st.markdown("<p style='color: #a0a0a5;'>Access the team handbook, technique references, and event calendars below.</p>", unsafe_allow_html=True)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    r_col1, r_col2, r_col3 = st.columns(3)
-    
-    with r_col1:
-        st.link_button("📘 Rule Book", "https://docs.google.com/document", use_container_width=True)
-    with r_col2:
-        st.link_button("🎥 Video Review Playlist", "https://youtube.com", use_container_width=True)
-    with r_col3:
-        st.link_button("📝 Waiver Form", "https://example.com/merch", use_container_width=True)
+    # 1. Executive Members Popover (Top Resource)
+    with st.popover("👑 View 2026-2027 Executive Members", use_container_width=True):
+        st.markdown("### DBZ Executive Team")
+        st.markdown("""
+        * **President:** Wei Heng Gao
+        * **Co-President:** David Namgung
+        * **VP Internal:** Catherine Zhu, Fangrui Xu
+        * **VP External:** Felicia Xie, Rui Zhu, Evelyn Liu
+        * **VP Events:** William Killianiotis, Cassandra Duong
+        * **VP Social:** Lina Zheng, Lea Tian, Chelsea Zhang
+        * **VP Finance:** Andy Li
+        * **VP Logistics:** Avery Kim
+        * **VP Fitness:** Orlando, Ceres Brunet, Houwen Yao, Kia Takhsha, Jennifer Tram Su
+        """)
         
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # 2. Resource Card Grid
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        with st.container(border=True):
+            st.markdown("#### ℹ️ INFORMATION SESSION")
+            st.caption("Missed the Information Session?")
+            st.link_button("Open Slides", "https://docs.google.com/presentation", use_container_width=True)
+            
+        with st.container(border=True):
+            st.markdown("#### 🚇 TRANSIT Guide")
+            st.caption("How to get to Canal Fitness via Bus and Metro")
+            st.link_button("View Route Map", "https://maps.google.com", use_container_width=True)
+            
+        with st.container(border=True):
+            st.markdown("#### ⏱️ DBZ Racing History")
+            st.caption("List of DBZ Races with the times and rankings")
+            st.link_button("View Rankings", "https://docs.google.com/spreadsheets", use_container_width=True)
+            
+        with st.container(border=True):
+            st.markdown("#### 🩹 INJURY PREVENTION")
+            st.caption("Prevent injuries during the year.")
+            st.link_button("Read Guidelines", "https://docs.google.com/document", use_container_width=True)
+
+    with col2:
+        with st.container(border=True):
+            st.markdown("#### 🐉 GUIDE Dragon Boat 101")
+            st.caption("A guide stating the different teams in Montreal, competitions and our club.")
+            st.link_button("Read Guide", "https://docs.google.com/document", use_container_width=True)
+            
+        with st.container(border=True):
+            st.markdown("#### 📜 DBZ HISTORY")
+            st.caption("Documented history of our club.")
+            st.link_button("Read History", "https://docs.google.com/document", use_container_width=True)
+            
+        with st.container(border=True):
+            st.markdown("#### 🏆 Competition Prep")
+            st.caption("Preparation docs ahead of any competitions")
+            st.link_button("View Checklists", "https://docs.google.com/document", use_container_width=True)
+            
+        with st.container(border=True):
+            st.markdown("#### 🎥 YouTube Channel")
+            st.caption("Check out our races!")
+            st.link_button("Watch Videos", "https://youtube.com", use_container_width=True)
+
     st.divider()
     st.info("Additional resources and forms will be populated here as the season progresses.")
-
 
 # --- 7. PAGE 3: ADMIN DASHBOARD (FRAGMENTED) ---
 elif st.session_state.page == "Admin":

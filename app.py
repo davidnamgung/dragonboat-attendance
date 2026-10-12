@@ -351,7 +351,7 @@ elif st.session_state.page == "Admin":
         st.markdown('<h1 class="main-title">Admin Dashboard</h1>', unsafe_allow_html=True)
         st.divider()
         
-        admin_tab1, admin_tab2, admin_tab3 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log"])
+        admin_tab1, admin_tab2, admin_tab3, admin_tab4 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log", "👥 Manage Roster"])
         
         @st.fragment
         def render_admin_form(ts_string):
@@ -449,6 +449,46 @@ elif st.session_state.page == "Admin":
                 st.dataframe(df_audit[['Timestamp', 'Action', 'Details']], use_container_width=True, hide_index=True, height=500)
             else:
                 st.info("No system actions logged yet.")
+
+        with admin_tab4:
+            st.markdown("### Add New Paddler")
+            with st.form("add_member_form"):
+                c1, c2 = st.columns(2)
+                with c1:
+                    new_name = st.text_input("Full Name (Must be unique)")
+                    new_gender = st.selectbox("Gender", ["Open", "Women", "Unknown"], index=2)
+                with c2:
+                    new_side = st.selectbox("True Side", ["Left", "Right", "Ambidextrous", "Unknown"], index=3)
+                    new_mem = st.selectbox("Membership Tier", [
+                        "Fall ONLY (without circuit)", 
+                        "BOTH semesters (with circuit)", 
+                        "Winter ONLY (without circuit)", 
+                        "BOTH semesters (without circuit)",
+                        "Unknown"
+                    ], index=4)
+                    
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.form_submit_button("Add to Roster", use_container_width=True):
+                    if new_name.strip() == "":
+                        st.error("Please enter a valid name.")
+                    else:
+                        # Prevent duplicate entries that would crash the database
+                        existing_names = df_roster['Name'].str.lower().tolist() if not df_roster.empty else []
+                        if new_name.strip().lower() in existing_names:
+                            st.error(f"❌ {new_name} is already in the roster.")
+                        else:
+                            supabase.table("roster").insert({
+                                "Name": new_name.strip(),
+                                "True Side": new_side,
+                                "Gender": new_gender,
+                                "Membership": new_mem
+                            }).execute()
+                            
+                            log_action("Roster Addition", f"{new_name} was added to the database.")
+                            load_roster.clear()
+                            load_audit_log.clear()
+                            st.success(f"🎉 {new_name} has been added and can now access the sign-up portal!")
+                            st.rerun()
 
 # --- 8. PAGE 4: MAIN SIGN UP (FRAGMENTED) ---
 elif st.session_state.page == "Sign Up":

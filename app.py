@@ -324,6 +324,8 @@ def render_roster_card(ts_str, status_filter=['Active', 'Attended']):
     
     empty_state_html = "<span style='color: #4a4d55; font-style: italic;'>Seats Available</span>"
     
+    pulse_dot = "<span style='height: 10px; width: 10px; background-color: #ff3333; border-radius: 50%; display: inline-block; margin-right: 8px; animation: pulseGlow 2s infinite;'></span>"
+
     st.markdown(f"""
 <div class='roster-card'>
     <div style='display: flex; justify-content: space-between;'>
@@ -335,7 +337,7 @@ def render_roster_card(ts_str, status_filter=['Active', 'Attended']):
             <div class='paddler-list'>{"<br>".join(lefts) if lefts else empty_state_html}</div>
         </div>
         <div style='width: 48%;'>
-            <div class='roster-title'>Right ({len(rights)}/16)</div>
+            <div class='roster-title'>{pulse_dot} Left ({len(lefts)}/16)</div>
             <div style="width: 100%; background-color: #2b2d31; border-radius: 4px; height: 6px; margin-top: -4px; margin-bottom: 12px;">
                 <div style="width: {right_pct}%; background-color: #ff3333; height: 100%; border-radius: 4px; transition: width 0.5s ease;"></div>
             </div>
@@ -514,6 +516,23 @@ elif st.session_state.page == "Analytics":
             women_dist = women_df['True Side'].value_counts().reindex(side_categories, fill_value=0)
             st.altair_chart(render_modern_donut(women_dist, 'Side', side_colors), use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown(f"""
+    <div style="display: flex; gap: 20px; margin-bottom: 25px;">
+        <div style="flex: 1; background-color: rgba(22, 24, 28, 0.65); backdrop-filter: blur(12px); padding: 20px; border-radius: 12px; border: 1px solid rgba(43, 45, 49, 0.8); border-left: 4px solid #ff3333;">
+            <div style="color: #a0a0a5; font-weight: 600; font-size: 0.9rem; text-transform: uppercase;">Total Active Roster</div>
+            <div style="font-family: 'Teko', sans-serif; font-size: 3rem; font-weight: 800; color: white; line-height: 1.1;">{len(df_roster)}</div>
+        </div>
+        <div style="flex: 1; background-color: rgba(22, 24, 28, 0.65); backdrop-filter: blur(12px); padding: 20px; border-radius: 12px; border: 1px solid rgba(43, 45, 49, 0.8); border-left: 4px solid #6c6f78;">
+            <div style="color: #a0a0a5; font-weight: 600; font-size: 0.9rem; text-transform: uppercase;">Total Practices Logged</div>
+            <div style="font-family: 'Teko', sans-serif; font-size: 3rem; font-weight: 800; color: white; line-height: 1.1;">{len(active_signups)}</div>
+        </div>
+        <div style="flex: 1; background-color: rgba(22, 24, 28, 0.65); backdrop-filter: blur(12px); padding: 20px; border-radius: 12px; border: 1px solid rgba(43, 45, 49, 0.8); border-left: 4px solid #ff7a7a;">
+            <div style="color: #a0a0a5; font-weight: 600; font-size: 0.9rem; text-transform: uppercase;">Waitlist Demand</div>
+            <div style="font-family: 'Teko', sans-serif; font-size: 3rem; font-weight: 800; color: white; line-height: 1.1;">{len(df_waitlist)}</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     with tab3:
         st.markdown("### Historical Practice Turnout")

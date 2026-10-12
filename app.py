@@ -15,23 +15,6 @@ st.markdown("""
     
     /* Background & Layout */
 
-    /* 1. Pure App Mode (Hide Streamlit Chrome) */
-    [data-testid="stHeader"] { display: none !important; }
-    [data-testid="stAppViewBlockContainer"] { padding-top: 2rem !important; padding-bottom: 2rem !important; }
-    footer { display: none !important; }
-
-    /* 2. Cinematic Noise Overlay */
-    [data-testid="stAppViewContainer"]::after {
-        content: "";
-        position: fixed;
-        top: 0; left: 0; width: 100vw; height: 100vh;
-        /* Renders a microscopic SVG noise pattern */
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-        opacity: 0.04; /* Barely visible, just enough for texture */
-        pointer-events: none; /* Ensures you can still click things underneath */
-        z-index: 9999;
-    }
-
     [data-testid="stAppViewContainer"] { 
         background: radial-gradient(circle at 50% 0%, rgba(255, 51, 51, 0.12) 0%, #0e1117 75%) !important; 
         color: #e0e0e0; 
@@ -86,7 +69,7 @@ st.markdown("""
         background-color: rgba(255, 51, 51, 0.15) !important;
         color: #ff3333 !important;
     }
-    
+
     .stSelectbox label { font-family: 'Inter', sans-serif !important; font-size: 1.4rem !important; font-weight: 600; color: #ffffff !important; text-align: center; }
     div[data-baseweb="select"] > div { background-color: #1a1c23 !important; border-radius: 12px !important; border: 1px solid #3a3d45 !important; }
     

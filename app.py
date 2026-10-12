@@ -339,7 +339,7 @@ elif st.session_state.page == "Analytics":
             st.info("Not enough data yet. Complete a few practices to see trends!")
 
 # --- NEW PAGE: TEAM RESOURCES ---
-elif st.session_state.page == "Resources (Unfinished)":
+elif st.session_state.page == "Resources":
     st.markdown('<h1 class="main-title">Team Resources</h1>', unsafe_allow_html=True)
     st.divider()
     

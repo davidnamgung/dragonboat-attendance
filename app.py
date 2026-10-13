@@ -1254,7 +1254,7 @@ elif st.session_state.page == "Sign Up":
                     </div>
                     """, unsafe_allow_html=True)
                 with col2:
-                    if st.button("Switch", use_container_width=True, key="switch_user_btn"):
+                    if st.button("Switch User", use_container_width=True, key="switch_user_btn"):
                         st.session_state.current_user = None
                         st.rerun()
         

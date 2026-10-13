@@ -431,13 +431,15 @@ def render_card_header(ts_string):
 
         st.markdown(f"""
         <div style="margin-bottom: 15px;">
-            <div style="display: inline-block; background-color: rgba(255, 51, 51, 0.15); border: 1px solid rgba(255, 51, 51, 0.5); box-shadow: 0 0 12px rgba(255, 51, 51, 0.3); color: #ff7a7a; padding: 4px 14px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; letter-spacing: 1.5px; margin-bottom: 8px;">{type_val}</div>
+            <div>
+                <div style="display: inline-block; background-color: rgba(255, 51, 51, 0.15); border: 1px solid rgba(255, 51, 51, 0.5); box-shadow: 0 0 12px rgba(255, 51, 51, 0.3); color: #ff7a7a; padding: 4px 14px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; letter-spacing: 1.5px; margin-bottom: 8px;">{type_val}</div>
+                {tier_tag}
+            </div>
             <div style="color: #ffffff; font-weight: 600; font-size: 1.1rem; margin-top: 4px;">{date_val}</div>
             <div style="color: #a0a0a5; font-size: 0.95rem; margin-top: 2px;">{time_val}</div>
         </div>
         """, unsafe_allow_html=True)
     else:
-        # Fallback just in case
         st.markdown(f"#### {ts_string}")
 
 def render_roster_card(ts_str, status_filter=['Active', 'Attended']):

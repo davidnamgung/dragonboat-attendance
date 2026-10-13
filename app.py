@@ -1265,11 +1265,11 @@ elif st.session_state.page == "Sign Up":
                     card_col1, card_col2 = st.columns([4, 1], vertical_alignment="center")
                     with card_col1:
                         st.markdown(f"""
-                                            <div style="background: linear-gradient(135deg, rgba(22, 24, 28, 0.8), rgba(255, 51, 51, 0.05)); backdrop-filter: blur(10px); padding: 20px 25px; border-radius: 16px; border: 1px solid rgba(255, 51, 51, 0.2); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); border-left: 4px solid #ff3333; animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
-                                                <div style="color: #ff7a7a; font-size: 0.85rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;">Verified Paddler</div>
-                                                <div style="font-family: 'Teko', sans-serif; font-size: 2.8rem; font-weight: 800; color: white; line-height: 1.1;">{user_name}</div>
-                                                <div style="color: #a0a0a5; font-size: 1.05rem; margin-top: 6px;"><strong>Tier:</strong> {user_membership} &nbsp;&bull;&nbsp; <strong>Side:</strong> {user_side}</div>
-                                            </div>
+                        <div style="padding: 5px;">
+                            <div style="color: #ff7a7a; font-size: 0.85rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 2px;">Verified Paddler</div>
+                            <div style="font-family: 'Teko', sans-serif; font-size: 2.6rem; font-weight: 800; color: white; line-height: 1.1; margin-bottom: 4px;">{user_name}</div>
+                            <div style="color: #a0a0a5; font-size: 1.05rem;"><strong>Tier:</strong> {user_membership} &nbsp;&bull;&nbsp; <strong>Side:</strong> <span style="color: #ffffff; font-weight: 600;">{user_side}</span></div>
+                        </div>
                         """, unsafe_allow_html=True)
                     with card_col2:
                         with st.popover("🔄 Update Side", use_container_width=True):

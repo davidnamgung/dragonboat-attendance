@@ -817,11 +817,11 @@ elif st.session_state.page == "Resources":
             * **Co-President:** David Namgung
             * **VP Internal:** Catherine Zhu, Fangrui Xu
             * **VP External:** Felicia Xie, Rui Zhu, Evelyn Liu
-            * **VP Events:** William Killianiotis, Cassandra Duong
+            * **VP Events:** William Kallianiotis, Cassandra Duong
             * **VP Social:** Lina Zheng, Lea Tian, Chelsea Zhang
             * **VP Finance:** Andy Li
             * **VP Logistics:** Avery Kim
-            * **VP Fitness:** Orlando, Ceres Brunet, Houwen Yao, Kia Takhsha, Jennifer Tram Su
+            * **VP Fitness:** Orlando Qiu, Ceres Brunet, Houwen Yao, Kia Takhsha, Jennifer Tram Su
             """)
             st.markdown("### DBZ Coaching Staff")
             st.markdown("""

@@ -301,6 +301,25 @@ thurs_dt = effective_monday + timedelta(days=3, hours=19)
 circuit_dt = effective_monday + timedelta(days=4, hours=17) 
 fri_dt = effective_monday + timedelta(days=4, hours=18)
 
+# --- Weekly Workout Curriculum ---
+WORKOUT_THEMES = {
+    1: "Catch + Sit up, Intro Top arm + lean out + feet placement",
+    2: "Mechanics of a stroke (rotation, positive catch)",
+    3: "DEEP CATCH (angle) Downward pressure",
+    4: "Kinetic Chain - pull part 1: feet + hip",
+    5: "Kinetic Chain part 2: body/shoulder (sit up) + exit intro",
+    6: "Kinetic Chain part 3: finishing stroke + exit",
+    7: "Accelerating through the stroke + air time EXPLOSIVENESS",
+    8: "Hard practice, highest intensity"
+}
+
+def get_weekly_theme(target_monday):
+    # Base Week 1 starts on Monday, October 12, 2026
+    base_date = datetime(2026, 10, 12).date()
+    days_diff = (target_monday.date() - base_date).days
+    week_num = (days_diff // 7) + 1
+    return WORKOUT_THEMES.get(week_num, None)
+
 def format_date(d, time_str):
     suffix = 'th' if 11 <= d.day <= 13 else {1:'st', 2:'nd', 3:'rd'}.get(d.day % 10, 'th')
     return f"{d.strftime('%A, %B')} {d.day}{suffix} {time_str}"
@@ -571,23 +590,23 @@ if st.session_state.page == "Lineups":
     
     current_week_label = f"📅 Week of {effective_monday.strftime('%B %-d')} (Current Week)"
     with st.expander(current_week_label, expanded=True):
+        
+        # --- NEW: Weekly Theme Teaser ---
+        current_theme = get_weekly_theme(effective_monday)
+        if current_theme:
+            st.markdown(f"""
+            <div style="text-align: center; background: rgba(77, 171, 247, 0.08); border: 1px solid rgba(77, 171, 247, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <div style="color: #4dabf7; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px;">🎯 This Week's Focus</div>
+                <div style="color: #e0e0e0; font-size: 1.25rem; font-weight: 600;">{current_theme}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
         c1, c2, c3 = st.columns(3)
         cols = [c1, c2, c3]
         for idx, (ts_str, ts_dt) in enumerate(TIMESLOTS.items()):
             with cols[idx]:
-                render_card_header(ts_str) # Replaces the messy markdown
+                render_card_header(ts_str) 
                 render_roster_card(ts_str, ['Active', 'Attended'])
-            
-    if historical_weeks:
-        st.divider()
-        st.markdown("### Historical Lineups")
-        for week_label, dates in historical_weeks.items():
-            with st.expander(f"📅 {week_label}", expanded=False):
-                cols = st.columns(len(dates) if len(dates) > 0 else 1)
-                for idx, past_date in enumerate(dates):
-                    with cols[idx]:
-                        render_card_header(past_date) # Replaces the messy markdown
-                        render_roster_card(past_date, ['Active', 'Attended'])
 
 # --- 6. PAGE 2: ANALYTICS DASHBOARD ---
 elif st.session_state.page == "Analytics":
@@ -1012,15 +1031,35 @@ elif st.session_state.page == "Admin":
                         render_admin_form(ts_str)
             
             if historical_weeks:
-                st.divider()
-                st.markdown("### Edit Past Attendance")
-                for week_label, dates in historical_weeks.items():
-                    with st.expander(f"⚙️ Manage {week_label}", expanded=False):
-                        cols = st.columns(len(dates) if len(dates) > 0 else 1)
-                        for idx, past_date in enumerate(dates):
-                            with cols[idx]:
-                                render_card_header(past_date) # Replaces the messy markdown
-                                render_admin_form(past_date)
+        st.divider()
+        st.markdown("### Historical Lineups")
+        for week_label, dates in historical_weeks.items():
+            with st.expander(f"📅 {week_label}", expanded=False):
+                
+                # --- NEW: Historical Weekly Theme Teaser ---
+                try:
+                    # Extract the date from labels like "Week of October 12, 2026"
+                    match = re.search(r'([A-Za-z]+ \d+, \d{4})', week_label)
+                    if match:
+                        hist_monday = datetime.strptime(match.group(1), "%B %d, %Y")
+                        hist_theme = get_weekly_theme(hist_monday)
+                        
+                        if hist_theme:
+                            st.markdown(f"""
+                            <div style="text-align: center; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 12px; margin-bottom: 25px;">
+                                <div style="color: #a0a0a5; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px;">Training Theme</div>
+                                <div style="color: #e0e0e0; font-size: 1.15rem; font-weight: 600;">{hist_theme}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                except Exception as e:
+                    pass # Fails gracefully if date format changes
+
+                # --- Render the Session Columns ---
+                cols = st.columns(len(dates) if len(dates) > 0 else 1)
+                for idx, past_date in enumerate(dates):
+                    with cols[idx]:
+                        render_card_header(past_date) # Replaces the messy markdown
+                        render_roster_card(past_date, ['Active', 'Attended'])
 
         with admin_tab2:
             st.markdown("### No-Show Tracking")

@@ -417,7 +417,7 @@ def render_card_header(ts_string):
     match = re.match(r"(.*?)\s+(\d{1,2}:\d{2}\s*[AP]M\s*-\s*\d{1,2}:\d{2}\s*[AP]M)\s*\[(.*?)\]", ts_string)
     
     if match:
-        date_val = match.group(1).upper() # Converts "Thursday, October 8th" to uppercase
+        date_val = match.group(1) # Converts "Thursday, October 8th" to uppercase
         time_val = match.group(2)
         type_val = match.group(3).upper()
         

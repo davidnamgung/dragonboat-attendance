@@ -1325,22 +1325,55 @@ elif st.session_state.page == "Sign Up":
                 
                 if available_timeslots:
                     st.markdown("### Sign Up for a Practice")
-                    
-                    # Helper function to append readable training tags to the radio buttons
-                    def get_display_label(ts):
-                        if "Thursday" in ts and "7:00 PM" in ts:
-                            label = f"{ts} — [Intermediate / Advanced]"
-                        elif "Friday" in ts and "6:00 PM" in ts:
-                            label = f"{ts} — [Beginner-Friendly / Back-To-Basics]"
-                        elif "Friday" in ts and "5:00 PM" in ts:
-                            label = f"{ts} — [For All]"
-                        else:
-                            label = ts
-                        return label.upper()
+                    st.caption("Select your preferred timeslot below (Limit: 1 pool session + 1 circuit spot per week).")
+                    st.markdown("<br>", unsafe_allow_html=True)
 
-                    display_to_original = {get_display_label(ts): ts for ts in available_timeslots}
-                    selected_display = st.radio("Select Practice (You may choose 1 pool session, followed by a circuit spot):", list(display_to_original.keys()))
-                    timeslot = display_to_original[selected_display]
+                    # Initialize session state for selected timeslot if not present
+                    if "selected_timeslot" not in st.session_state:
+                        st.session_state.selected_timeslot = available_timeslots[0]
+
+                    # Center the options using a [1, 3, 1] column layout
+                    sc1, sc2, sc3 = st.columns([1, 3, 1])
+                    with sc2:
+                        # Build formatted labels for each available slot
+                        options_map = {}
+                        for ts in available_timeslots:
+                            if "Thursday" in ts and "7:00 PM" in ts:
+                                tag = "INTERMEDIATE / ADVANCED"
+                            elif "Friday" in ts and "6:00 PM" in ts:
+                                tag = "BEGINNER-FRIENDLY / BACK-TO-BASICS"
+                            elif "Friday" in ts and "5:00 PM" in ts:
+                                tag = "FOR ALL"
+                            else:
+                                tag = "SESSION"
+                            
+                            options_map[ts] = tag
+
+                        # Render each timeslot inside its own styled container card
+                        selected_ts = st.session_state.selected_timeslot
+                        
+                        for ts in available_timeslots:
+                            tag_text = options_map[ts]
+                            is_selected = (st.session_state.selected_timeslot == ts)
+                            
+                            # Container styling shifts slightly if selected
+                            border_color = "#ff3333" if is_selected else "rgba(43, 45, 49, 0.8)"
+                            bg_color = "rgba(255, 51, 51, 0.08)" if is_selected else "rgba(22, 24, 28, 0.65)"
+                            
+                            with st.container(border=True):
+                                col_a, col_b = st.columns([4, 1], vertical_alignment="center")
+                                with col_a:
+                                    st.markdown(f"""
+                                    <div style="font-weight: 700; color: white; font-size: 1.1rem; margin-bottom: 4px;">{ts.upper()}</div>
+                                    <div style="font-size: 0.8rem; font-weight: 800; color: #ff7a7a; letter-spacing: 1px;">{tag_text}</div>
+                                    """, unsafe_allow_html=True)
+                                with col_b:
+                                    if st.button("Select", key=f"select_{ts}", use_container_width=True):
+                                        st.session_state.selected_timeslot = ts
+                                        st.rerun()
+
+                        timeslot = st.session_state.selected_timeslot
+                        target_dt = TIMESLOTS[timeslot]
                     
                     target_dt = TIMESLOTS[timeslot]
                     

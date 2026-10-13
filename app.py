@@ -1426,12 +1426,12 @@ elif st.session_state.page == "Sign Up":
                 if available_timeslots:
                     st.markdown("<h3 style='text-align: center; color: white; margin-bottom: 20px;'>SIGN-UP FOR PRACTICE</h3>", unsafe_allow_html=True)
                     
-                    # --- Compact, Centered Rule Notice ---
+                    # --- Compact, Centered Rule Notice (Yellow Container) ---
                     nc1, nc2, nc3 = st.columns([1, 3, 1])
                     with nc2:
                         st.markdown("""
-                        <div style="background: rgba(255, 51, 51, 0.05); border: 1px solid rgba(255, 51, 51, 0.3); border-left: 3px solid #ff3333; padding: 8px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #a0a0a5; text-align: center;">
-                            ⚠️ Limit: <strong style="color: #e0e0e0;">1 pool session AND 1 circuit spot</strong> per week.
+                        <div style="background: rgba(255, 193, 7, 0.08); border: 1px solid rgba(255, 193, 7, 0.3); border-left: 3px solid #ffc107; padding: 8px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #e0e0e0; text-align: center;">
+                            ⚠️ Limit: <strong style="color: #ffc107;">1 pool session AND 1 circuit spot</strong> per week.
                         </div>
                         """, unsafe_allow_html=True)
 

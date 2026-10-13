@@ -1339,7 +1339,7 @@ elif st.session_state.page == "Sign Up":
                         return label.upper()
 
                     display_to_original = {get_display_label(ts): ts for ts in available_timeslots}
-                    selected_display = st.radio("Select Practice:", list(display_to_original.keys()))
+                    selected_display = st.radio("Select Practice (You may choose 1 pool session, followed by a circuit spot):", list(display_to_original.keys()))
                     timeslot = display_to_original[selected_display]
                     
                     target_dt = TIMESLOTS[timeslot]

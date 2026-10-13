@@ -1346,6 +1346,28 @@ elif st.session_state.page == "Sign Up":
     st.markdown("""<div class="instructions">Welcome to the sign-up portal. Please select your name below and choose your preferred timeslot. To ensure everyone gets water time, attendance is strictly limited to <strong>one pool practice per week</strong>. If your schedule changes, simply log back in and cancel your spot to instantly free it up for a teammate. You can view the live attendee list in the sidebar at any time.<br>
     <br>Each pool session is capped at <strong>32 paddlers</strong> to maintain an even split of 16 Lefts and 16 Rights. If you paddle on both sides or do not have a set preference yet, the system will automatically allocate your seat to keep the boat balanced.<br>
     <br>If a practice reaches capacity, you will be added to a side-specific waitlist. Whenever a cancellation occurs, the system automatically promotes the next person in line based on a first-come, first-served order. You can also cancel your waitlist position directly from this portal.</div>""", unsafe_allow_html=True)
+    
+    # --- NEW: Dynamic Deadline Reminder (Blue Container) ---
+    # The deadline is set to midnight on October 23, 2026
+    deadline_dt = tz.localize(datetime(2026, 10, 23, 0, 0, 0))
+    
+    if now < deadline_dt:
+        reminder_content = """
+        📣 <strong>Action Required:</strong> Please ensure your <strong style="color: #4dabf7;">mandatory waiver</strong> and <strong style="color: #4dabf7;">payment</strong> are completed by <strong>October 22nd</strong>.
+        """
+        text_color = "#e0e0e0"
+    else:
+        reminder_content = """
+        📣 <strong>Notice:</strong> No new reminders for this week.
+        """
+        text_color = "#a0a0a5"
+
+    st.markdown(f"""
+    <div style="max-width: 850px; margin: 20px auto 0 auto; background: rgba(77, 171, 247, 0.08); border: 1px solid rgba(77, 171, 247, 0.3); border-left: 4px solid #4dabf7; padding: 12px 20px; border-radius: 12px; text-align: center; color: {text_color}; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        {reminder_content}
+    </div>
+    """, unsafe_allow_html=True)
+
     st.divider()
 
     if not is_open:

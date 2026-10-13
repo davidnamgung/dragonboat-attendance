@@ -1398,7 +1398,7 @@ elif st.session_state.page == "Sign Up":
                                 </div>
                                 """, unsafe_allow_html=True)
                             with col_b:
-                                if st.button(f"Cancel", key=f"cancel_att_{ts_str}", use_container_width=True):
+                                if st.button(f"🚨 Cancel {day_name} Attendance", key=f"cancel_att_{ts_str}", use_container_width=True):
                                     record_id = int(active_record.iloc[0]['id'])
                                     supabase.table("signups").update({"Status": "Cancelled"}).eq("id", record_id).execute()
                                     log_action("Attendance Cancelled", f"{user_name} cancelled their spot for {day_name}")

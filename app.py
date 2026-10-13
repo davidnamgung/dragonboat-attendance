@@ -1420,11 +1420,14 @@ elif st.session_state.page == "Sign Up":
         reminder_content = "📣 <strong>Notice:</strong> No new reminders for this week."
         text_color = "#a0a0a5"
 
-    st.markdown(f"""
-    <div style="max-width: 850px; margin: 20px auto 0 auto; background: rgba(77, 171, 247, 0.08); border: 1px solid rgba(77, 171, 247, 0.3); border-left: 4px solid #4dabf7; padding: 12px 20px; border-radius: 12px; text-align: center; color: {text_color}; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        {reminder_content}
-    </div>
-    """, unsafe_allow_html=True)
+    # Centered column wrapper matching selection cards and rule notices
+    ann_c1, ann_c2, ann_c3 = st.columns([1, 3, 1])
+    with ann_c2:
+        st.markdown(f"""
+        <div style="width: 100%; margin: 5px auto 10px auto; background: rgba(77, 171, 247, 0.08); border: 1px solid rgba(77, 171, 247, 0.3); border-left: 4px solid #4dabf7; padding: 10px 18px; border-radius: 10px; text-align: center; color: {text_color}; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            {reminder_content}
+        </div>
+        """, unsafe_allow_html=True)
 
     st.divider()
 

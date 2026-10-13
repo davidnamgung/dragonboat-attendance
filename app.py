@@ -607,7 +607,7 @@ if st.session_state.page == "Lineups":
             with cols[idx]:
                 render_card_header(ts_str) 
                 render_roster_card(ts_str, ['Active', 'Attended'])
-
+                
 # --- 6. PAGE 2: ANALYTICS DASHBOARD ---
 elif st.session_state.page == "Analytics":
     st.markdown('<h1 class="main-title">Team Analytics</h1>', unsafe_allow_html=True)
@@ -1031,7 +1031,7 @@ elif st.session_state.page == "Admin":
                         render_admin_form(ts_str)
             
             if historical_weeks:
-        st.divider()
+                st.divider()
         st.markdown("### Historical Lineups")
         for week_label, dates in historical_weeks.items():
             with st.expander(f"📅 {week_label}", expanded=False):

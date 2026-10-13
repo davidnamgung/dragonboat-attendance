@@ -1329,7 +1329,7 @@ elif st.session_state.page == "Sign Up":
                     # --- Emphasized Callout Container for Rules ---
                     st.markdown("""
                     <div style="background: rgba(255, 51, 51, 0.05); border: 1px solid rgba(255, 51, 51, 0.3); border-left: 4px solid #ff3333; padding: 12px 18px; border-radius: 10px; margin-bottom: 20px; font-size: 0.95rem; color: #e0e0e0;">
-                        <strong>⚠️ Notice:</strong> Select your preferred timeslot below. <em>Attendance is strictly limited to 1 pool session + 1 circuit spot per week.</em>
+                        <strong>⚠️ Notice:</strong> Select your preferred timeslot below. <em>Attendance is strictly limited to 1 pool session AND 1 circuit spot per week.</em>
                     </div>
                     """, unsafe_allow_html=True)
 

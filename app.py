@@ -1380,11 +1380,11 @@ elif st.session_state.page == "Admin":
                         combined_dt = datetime.combine(new_date, new_time)
                         loc_dt = tz.localize(combined_dt)
                         
-                        supabase.table("announcements").upsert({
-                            "id": 1,
+                        # Use update instead of upsert to avoid primary key conflict errors
+                        supabase.table("announcements").update({
                             "message": new_msg,
                             "deadline": loc_dt.isoformat()
-                        }).execute()
+                        }).eq("id", 1).execute()
                         
                         log_action("Announcement Updated", "Admin modified the global portal reminder.")
                         load_announcement.clear()

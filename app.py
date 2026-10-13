@@ -427,7 +427,7 @@ def render_card_header(ts_string):
             tier_tag = '<div style="display: inline-block; background-color: rgba(77, 171, 247, 0.15); border: 1px solid rgba(77, 171, 247, 0.4); color: #4dabf7; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">For All</div>'
         elif "7:00 PM" in time_val and "Thursday" in date_val:
             tier_tag = '<div style="display: inline-block; background-color: rgba(255, 122, 122, 0.15); border: 1px solid rgba(255, 122, 122, 0.4); color: #ff7a7a; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">Intermediate / Advanced</div>'
-        elif "6:00 PM" in time_val and "Friday" in date_val:
+        elif "7:00 PM" in time_val and "Friday" in date_val:
             tier_tag = '<div style="display: inline-block; background-color: rgba(0, 230, 118, 0.15); border: 1px solid rgba(0, 230, 118, 0.4); color: #00e676; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">Beginner-Friendly / Back-To-Basics</div>'
 
         st.markdown(f"""

@@ -444,55 +444,91 @@ def render_card_header(ts_string):
         st.markdown(f"#### {ts_string}")
 
 def render_roster_card(ts_str, status_filter=['Active', 'Attended']):
+    is_circuit = "[Circuit]" in ts_str
+    
     if not df_signups.empty:
         ts_active = df_signups[(df_signups['Practice Date'] == ts_str) & (df_signups['Status'].isin(status_filter))]
-        merged = pd.merge(ts_active, df_roster, on="Name", how="left")
-        lefts = merged[merged['True Side'] == 'Left']['Name'].tolist()
-        rights = merged[merged['True Side'] == 'Right']['Name'].tolist()
-        ambis = merged[merged['True Side'].isin(['Unknown', 'Ambidextrous'])]['Name'].tolist()
         
-        # Dynamically distribute Ambi/Unknown paddlers to balance the visual list
-        for name in ambis:
-            if len(lefts) <= len(rights):
-                lefts.append(name + " (A)")
-            else:
-                rights.append(name + " (A)")
+        if is_circuit:
+            # For Circuit: Just grab all signed-up names directly, no side separation needed
+            attendees = ts_active['Name'].tolist()
+            total_count = len(attendees)
+            pct = min((total_count / 24) * 100, 100)
+            empty_state_html = "<span style='color: #4a4d55; font-style: italic;'>Spots Available</span>"
+            
+            st.markdown(f"""
+            <div class='roster-card'>
+                <div class='roster-title'>Total Circuit Signups ({total_count}/24)</div>
+                <div style="width: 100%; background-color: #2b2d31; border-radius: 4px; height: 6px; margin-top: -4px; margin-bottom: 12px;">
+                    <div style="width: {pct}%; background-color: #ff3333; height: 100%; border-radius: 4px; transition: width 0.5s ease;"></div>
+                </div>
+                <div class='paddler-list'>{"<br>".join(attendees) if attendees else empty_state_html}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        else:
+            # For Pool: Keep the side-balanced Left (16) vs Right (16) layout
+            merged = pd.merge(ts_active, df_roster, on="Name", how="left")
+            lefts = merged[merged['True Side'] == 'Left']['Name'].tolist()
+            rights = merged[merged['True Side'] == 'Right']['Name'].tolist()
+            ambis = merged[merged['True Side'].isin(['Unknown', 'Ambidextrous'])]['Name'].tolist()
+            
+            for name in ambis:
+                if len(lefts) <= len(rights):
+                    lefts.append(name + " (A)")
+                else:
+                    rights.append(name + " (A)")
+                    
+            left_pct = min((len(lefts) / 16) * 100, 100)
+            right_pct = min((len(rights) / 16) * 100, 100)
+            empty_state_html = "<span style='color: #4a4d55; font-style: italic;'>Seats Available</span>"
+            
+            st.markdown(f"""
+            <div class='roster-card'>
+                <div style='display: flex; justify-content: space-between;'>
+                    <div style='width: 48%;'>
+                        <div class='roster-title'>Left ({len(lefts)}/16)</div>
+                        <div style="width: 100%; background-color: #2b2d31; border-radius: 4px; height: 6px; margin-top: -4px; margin-bottom: 12px;">
+                            <div style="width: {left_pct}%; background-color: #ff3333; height: 100%; border-radius: 4px; transition: width 0.5s ease;"></div>
+                        </div>
+                        <div class='paddler-list'>{"<br>".join(lefts) if lefts else empty_state_html}</div>
+                    </div>
+                    <div style='width: 48%;'>
+                        <div class='roster-title'>Right ({len(rights)}/16)</div>
+                        <div style="width: 100%; background-color: #2b2d31; border-radius: 4px; height: 6px; margin-top: -4px; margin-bottom: 12px;">
+                            <div style="width: {right_pct}%; background-color: #ff3333; height: 100%; border-radius: 4px; transition: width 0.5s ease;"></div>
+                        </div>
+                        <div class='paddler-list'>{"<br>".join(rights) if rights else empty_state_html}</div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
     else:
-        lefts, rights = [], []
-        
-    left_pct = min((len(lefts) / 16) * 100, 100)
-    right_pct = min((len(rights) / 16) * 100, 100)
-    
-    empty_state_html = "<span style='color: #4a4d55; font-style: italic;'>Seats Available</span>"
-    
-    pulse_dot = "<span style='height: 10px; width: 10px; background-color: #ff3333; border-radius: 50%; display: inline-block; margin-right: 8px; animation: pulseGlow 2s infinite;'></span>"
-
-    st.markdown(f"""
-<div class='roster-card'>
-    <div style='display: flex; justify-content: space-between;'>
-        <div style='width: 48%;'>
-            <div class='roster-title'>Left ({len(lefts)}/16)</div>
-            <div style="width: 100%; background-color: #2b2d31; border-radius: 4px; height: 6px; margin-top: -4px; margin-bottom: 12px;">
-                <div style="width: {left_pct}%; background-color: #ff3333; height: 100%; border-radius: 4px; transition: width 0.5s ease;"></div>
+        # Fallback for empty state
+        if is_circuit:
+            st.markdown("""
+            <div class='roster-card'>
+                <div class='roster-title'>Total Circuit Signups (0/24)</div>
+                <div class='paddler-list'><span style='color: #4a4d55; font-style: italic;'>Spots Available</span></div>
             </div>
-            <div class='paddler-list'>{"<br>".join(lefts) if lefts else empty_state_html}</div>
-        </div>
-        <div style='width: 48%;'>
-            <div class='roster-title'>Right ({len(rights)}/16)</div>            <div style="width: 100%; background-color: #2b2d31; border-radius: 4px; height: 6px; margin-top: -4px; margin-bottom: 12px;">
-                <div style="width: {right_pct}%; background-color: #ff3333; height: 100%; border-radius: 4px; transition: width 0.5s ease;"></div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class='roster-card'>
+                <div style='display: flex; justify-content: space-between;'>
+                    <div style='width: 48%;'><div class='roster-title'>Left (0/16)</div><div class='paddler-list'>Seats Available</div></div>
+                    <div style='width: 48%;'><div class='roster-title'>Right (0/16)</div><div class='paddler-list'>Seats Available</div></div>
+                </div>
             </div>
-            <div class='paddler-list'>{"<br>".join(rights) if rights else empty_state_html}</div>
-        </div>
-    </div>
-</div>
-    """, unsafe_allow_html=True)
-    
+            """, unsafe_allow_html=True)
+            
     if not df_waitlist.empty and 'Active' in status_filter: 
         wl = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
         wl_names = wl['Name'].tolist()
         if wl_names:
             st.markdown("**Waitlist:**")
             st.markdown(f"<div class='paddler-list'>" + "<br>".join([f"{i+1}. {n}" for i, n in enumerate(wl_names)]) + "</div>", unsafe_allow_html=True)
+
 # --- 5. PAGE 1: CURRENT LINEUPS ---
 if st.session_state.page == "Lineups":
     st.markdown('<h1 class="main-title">Team Lineups</h1>', unsafe_allow_html=True)

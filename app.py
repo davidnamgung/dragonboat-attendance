@@ -1260,7 +1260,6 @@ elif st.session_state.page == "Sign Up":
         
             @st.fragment
             def render_signup_portal(user_name):
-                st.divider()
                 
                 user_data = df_roster[df_roster['Name'] == user_name].iloc[0]
                 user_side = user_data.get('True Side', 'Unknown')

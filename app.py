@@ -1324,7 +1324,7 @@ elif st.session_state.page == "Sign Up":
                 
                 available_timeslots = [ts for ts in TIMESLOTS.keys() if (df_signups.empty or df_signups[(df_signups['Practice Date'] == ts) & (df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))].empty) and (df_waitlist.empty or df_waitlist[(df_waitlist['Practice Date'] == ts) & (df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')].empty)]                
                 if available_timeslots:
-                    st.markdown("### Sign Up for a Practice")
+                    st.markdown("<h3 style='text-align: center; color: white; margin-bottom: 20px;'>Sign Up for a Practice</h3>", unsafe_allow_html=True)
                     
                     # --- Compact, Centered Rule Notice ---
                     nc1, nc2, nc3 = st.columns([1, 3, 1])
@@ -1395,7 +1395,7 @@ elif st.session_state.page == "Sign Up":
                         st.markdown("""
                         <div style="background: rgba(255, 51, 51, 0.08); border: 1px solid rgba(255, 51, 51, 0.3); padding: 12px 16px; border-radius: 10px; color: #ff7a7a; font-size: 0.95rem; text-align: center; margin-bottom: 15px;">
                             🔒 <strong>Limit Reached:</strong> You are already signed up for a pool practice this week (Max: 1 per week).
-                            <br>You may sign-up for the Circuit Session as well</br>
+                            <br>You may sign-up for the Circuit Session as well.</br>
                         </div>
                         """, unsafe_allow_html=True)
                     

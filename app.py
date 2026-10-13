@@ -51,7 +51,7 @@ st.markdown("""
         letter-spacing: -1.5px; 
         filter: drop-shadow(0px 4px 15px rgba(255, 51, 51, 0.25)); 
     }
-    .sub-title { text-align: center; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 2rem; color: #8b8d91; margin-top: -5px; margin-bottom: 30px; letter-spacing: -0.5px; }
+    .sub-title { text-align: center; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 2.8rem; color: #8b8d91; margin-top: -5px; margin-bottom: 30px; letter-spacing: -0.5px; }
     .instructions { text-align: center; font-family: 'Inter', sans-serif; font-size: 1.1rem; color: #a0a0a5; max-width: 850px; margin: 0 auto; line-height: 1.6; background: #16181c; padding: 20px; border-radius: 12px; border: 1px solid #2b2d31; }
     
     /* Inputs */
@@ -118,7 +118,7 @@ st.markdown("""
     .stTabs [data-baseweb="tab-highlight"] { display: none !important; }
     
     /* Mobile Responsive */
-    @media (max-width: 768px) { .main-title { font-size: 2.5rem; letter-spacing: -1px; } .sub-title { font-size: 1.4rem; } .instructions { font-size: 1rem; padding: 15px; text-align: left; } .stSelectbox label { font-size: 1.2rem !important; } .stTabs [data-baseweb="tab-list"] { display: flex; flex-direction: column; gap: 8px; } }
+    @media (max-width: 768px) { .main-title { font-size: 2.5rem; letter-spacing: -1px; } .sub-title { font-size: 1.8rem; } .instructions { font-size: 1rem; padding: 15px; text-align: left; } .stSelectbox label { font-size: 1.2rem !important; } .stTabs [data-baseweb="tab-list"] { display: flex; flex-direction: column; gap: 8px; } }
 
     /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 8px; height: 8px; }

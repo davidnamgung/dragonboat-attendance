@@ -268,7 +268,6 @@ st.markdown("""
         overflow: hidden !important;
         text-overflow: ellipsis !important;
     }
-</style>
 
 </style>
 """, unsafe_allow_html=True)

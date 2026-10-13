@@ -298,7 +298,8 @@ effective_now = now - timedelta(hours=20)
 effective_monday = effective_now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=effective_now.weekday())
 
 thurs_dt = effective_monday + timedelta(days=3, hours=19)
-circuit_dt = effective_monday + timedelta(days=4, hours=17) 
+# Changed Circuit from 17 hours (5 PM) to 19 hours (7 PM)
+circuit_dt = effective_monday + timedelta(days=4, hours=19) 
 fri_dt = effective_monday + timedelta(days=4, hours=18)
 
 # --- Weekly Workout Curriculum ---
@@ -325,7 +326,8 @@ def format_date(d, time_str):
     return f"{d.strftime('%A, %B')} {d.day}{suffix} {time_str}"
 
 thurs_str = format_date(thurs_dt, "7:00 PM - 8:00 PM [Pool]")
-circuit_str = format_date(circuit_dt, "5:00 PM - 6:00 PM [Circuit]")
+# Updated the display string to match the new 7 PM start time
+circuit_str = format_date(circuit_dt, "7:00 PM - 8:00 PM [Circuit]")
 fri_str = format_date(fri_dt, "6:00 PM - 7:00 PM [Pool]")
 
 TIMESLOTS = {thurs_str: thurs_dt, circuit_str: circuit_dt, fri_str: fri_dt}

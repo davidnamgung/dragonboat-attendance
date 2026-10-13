@@ -1037,27 +1037,27 @@ elif st.session_state.page == "Admin":
             
             if historical_weeks:
                 st.divider()
-        st.markdown("### Historical Lineups")
-        for week_label, dates in historical_weeks.items():
-            with st.expander(f"📅 {week_label}", expanded=False):
-                
-                # --- NEW: Historical Weekly Theme Teaser ---
-                try:
-                    # Extract the date from labels like "Week of October 12, 2026"
-                    match = re.search(r'([A-Za-z]+ \d+, \d{4})', week_label)
-                    if match:
-                        hist_monday = datetime.strptime(match.group(1), "%B %d, %Y")
-                        hist_theme = get_weekly_theme(hist_monday)
+                st.markdown("### Historical Lineups")
+                for week_label, dates in historical_weeks.items():
+                    with st.expander(f"📅 {week_label}", expanded=False):
                         
-                        if hist_theme:
-                            st.markdown(f"""
-                            <div style="text-align: center; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 12px; margin-bottom: 25px;">
-                                <div style="color: #a0a0a5; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px;">Training Theme</div>
-                                <div style="color: #e0e0e0; font-size: 1.15rem; font-weight: 600;">{hist_theme}</div>
-                            </div>
+                        # --- NEW: Historical Weekly Theme Teaser ---
+                        try:
+                            # Extract the date from labels like "Week of October 12, 2026"
+                            match = re.search(r'([A-Za-z]+ \d+, \d{4})', week_label)
+                            if match:
+                                hist_monday = datetime.strptime(match.group(1), "%B %d, %Y")
+                                hist_theme = get_weekly_theme(hist_monday)
+                        
+                            if hist_theme:
+                                st.markdown(f"""
+                                <div style="text-align: center; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 12px; margin-bottom: 25px;">
+                                    <div style="color: #a0a0a5; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px;">Training Theme</div>
+                                    <div style="color: #e0e0e0; font-size: 1.15rem; font-weight: 600;">{hist_theme}</div>
+                                </div>
                             """, unsafe_allow_html=True)
-                except Exception as e:
-                    pass # Fails gracefully if date format changes
+                        except Exception as e:
+                            pass # Fails gracefully if date format changes
 
                 # --- Render the Session Columns ---
                 cols = st.columns(len(dates) if len(dates) > 0 else 1)

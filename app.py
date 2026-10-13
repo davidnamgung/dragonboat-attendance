@@ -1352,21 +1352,17 @@ elif st.session_state.page == "Sign Up":
     deadline_dt = tz.localize(datetime(2026, 10, 23, 0, 0, 0))
     
     if now < deadline_dt:
-        reminder_content = """
-        📣 <strong>Action Required:</strong> Please ensure your <strong style="color: #4dabf7;">mandatory waiver</strong> and <strong style="color: #4dabf7;">payment</strong> are completed by <strong>October 22nd</strong>.
-        """
-        text_color = "#e0e0e0"
+        st.markdown("""
+        <div style="max-width: 850px; margin: 20px auto 0 auto; background: rgba(77, 171, 247, 0.08); border: 1px solid rgba(77, 171, 247, 0.3); border-left: 4px solid #4dabf7; padding: 12px 20px; border-radius: 12px; text-align: center; color: #e0e0e0; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            📣 <strong>Action Required:</strong> Please ensure your <strong style="color: #4dabf7;">mandatory waiver</strong> and <strong style="color: #4dabf7;">payment</strong> are completed by <strong>October 22nd</strong>.
+        </div>
+        """, unsafe_allow_html=True)
     else:
-        reminder_content = """
-        📣 <strong>Notice:</strong> No new reminders for this week.
-        """
-        text_color = "#a0a0a5"
-
-    st.markdown(f"""
-    <div style="max-width: 850px; margin: 20px auto 0 auto; background: rgba(77, 171, 247, 0.08); border: 1px solid rgba(77, 171, 247, 0.3); border-left: 4px solid #4dabf7; padding: 12px 20px; border-radius: 12px; text-align: center; color: {text_color}; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        {reminder_content}
-    </div>
-    """, unsafe_allow_html=True)
+        st.markdown("""
+        <div style="max-width: 850px; margin: 20px auto 0 auto; background: rgba(77, 171, 247, 0.08); border: 1px solid rgba(77, 171, 247, 0.3); border-left: 4px solid #4dabf7; padding: 12px 20px; border-radius: 12px; text-align: center; color: #a0a0a5; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            📣 <strong>Notice:</strong> No new reminders for this week.
+        </div>
+        """, unsafe_allow_html=True)
 
     st.divider()
 

@@ -1243,13 +1243,20 @@ elif st.session_state.page == "Sign Up":
         else:
             user_name = st.session_state.current_user
             
-            col1, col2 = st.columns([4, 1])
-            with col1:
-                st.success(f"Access granted for **{user_name}**")
-            with col2:
-                if st.button("Switch User", use_container_width=True):
-                    st.session_state.current_user = None
-                    st.rerun()
+            # Centered and sized down to match the ID card and selection containers
+            acc_c1, acc_c2, acc_c3 = st.columns([1, 3, 1])
+            with acc_c2:
+                col1, col2 = st.columns([3, 1], vertical_alignment="center")
+                with col1:
+                    st.markdown(f"""
+                    <div style="background: rgba(0, 230, 118, 0.08); border: 1px solid rgba(0, 230, 118, 0.3); padding: 8px 14px; border-radius: 8px; color: #00e676; font-size: 0.9rem;">
+                        ✅ Access granted for <strong>{user_name}</strong>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col2:
+                    if st.button("Switch", use_container_width=True, key="switch_user_btn"):
+                        st.session_state.current_user = None
+                        st.rerun()
         
             @st.fragment
             def render_signup_portal(user_name):

@@ -374,6 +374,11 @@ def load_audit_log():
         
     return df_audit
 
+@st.cache_data(ttl=60)
+def load_announcement():
+    res = supabase.table("announcements").select("*").eq("id", 1).execute()
+    return res.data[0] if res.data else None
+
 def get_week_label(date_str):
     match = re.search(r', ([A-Za-z]+ \d+)', date_str)
     if match:
@@ -936,7 +941,7 @@ elif st.session_state.page == "Admin":
         st.markdown('<h1 class="main-title">Admin Dashboard</h1>', unsafe_allow_html=True)
         st.divider()
         
-        admin_tab1, admin_tab2, admin_tab3, admin_tab4, admin_tab5 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log", "👥 Manage Roster", "💳 Waivers & Payments"])
+        admin_tab1, admin_tab2, admin_tab3, admin_tab4, admin_tab5, admin_tab6 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log", "👥 Manage Roster", "💳 Waivers & Payments", "📢 Announcements"])
         
         @st.fragment
         def render_admin_form(ts_string):
@@ -1337,6 +1342,56 @@ elif st.session_state.page == "Admin":
                 else:
                     st.info("No changes detected.")
 
+        with admin_tab6:
+            st.markdown("### Manage Sign-Up Portal Announcement")
+            st.caption("Update the global reminder banner shown to all users. Supports raw HTML for custom styling.")
+            
+            ann_data = load_announcement()
+            
+            # Default fallbacks if the table is empty
+            curr_msg = ann_data["message"] if ann_data else "📣 <strong>Notice:</strong> Updates will appear here."
+            if ann_data and ann_data.get("deadline"):
+                curr_deadline = pd.to_datetime(ann_data["deadline"]).tz_convert("America/Toronto")
+            else:
+                curr_deadline = now + timedelta(days=7)
+
+            with st.container(border=True):
+                with st.form("announcement_form"):
+                    new_msg = st.text_area("Active Reminder Message (HTML/Markdown)", value=curr_msg, height=120)
+                    
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        new_date = st.date_input("Deadline Date", value=curr_deadline.date())
+                    with c2:
+                        new_time = st.time_input("Deadline Time", value=curr_deadline.time())
+                        
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    
+                    # Injecting blue button style for Save Announcement
+                    st.markdown("""
+                    <style>
+                        div.ann-btn button { background-color: #4dabf7 !important; color: #0e1117 !important; font-weight: 700 !important; }
+                        div.ann-btn button:hover { background-color: #339af0 !important; }
+                    </style>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown('<div class="ann-btn">', unsafe_allow_html=True)
+                    if st.form_submit_button("💾 Save Announcement", use_container_width=True):
+                        combined_dt = datetime.combine(new_date, new_time)
+                        loc_dt = tz.localize(combined_dt)
+                        
+                        supabase.table("announcements").upsert({
+                            "id": 1,
+                            "message": new_msg,
+                            "deadline": loc_dt.isoformat()
+                        }).execute()
+                        
+                        log_action("Announcement Updated", "Admin modified the global portal reminder.")
+                        load_announcement.clear()
+                        st.toast("Announcement saved successfully!", icon="💾")
+                        st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
+
 # --- 8. PAGE 4: MAIN SIGN UP (FRAGMENTED) ---
 elif st.session_state.page == "Sign Up":
     st.markdown('<h1 class="main-title">McGill Dragon Boat Z</h1>', unsafe_allow_html=True)
@@ -1347,22 +1402,29 @@ elif st.session_state.page == "Sign Up":
     <br>Each pool session is capped at <strong>32 paddlers</strong> to maintain an even split of 16 Lefts and 16 Rights. If you paddle on both sides or do not have a set preference yet, the system will automatically allocate your seat to keep the boat balanced.<br>
     <br>If a practice reaches capacity, you will be added to a side-specific waitlist. Whenever a cancellation occurs, the system automatically promotes the next person in line based on a first-come, first-served order. You can also cancel your waitlist position directly from this portal.</div>""", unsafe_allow_html=True)
     
-    # --- NEW: Dynamic Deadline Reminder (Blue Container) ---
-    # The deadline is set to midnight on October 23, 2026
-    deadline_dt = tz.localize(datetime(2026, 10, 23, 0, 0, 0))
+    # --- Dynamic Deadline Reminder (Blue Container) ---
+    ann_data = load_announcement()
     
-    if now < deadline_dt:
-        st.markdown("""
-        <div style="max-width: 850px; margin: 20px auto 0 auto; background: rgba(77, 171, 247, 0.08); border: 1px solid rgba(77, 171, 247, 0.3); border-left: 4px solid #4dabf7; padding: 12px 20px; border-radius: 12px; text-align: center; color: #e0e0e0; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            📣 <strong>Reminder:</strong> Please ensure your <strong style="color: #4dabf7;">mandatory waiver</strong> and <strong style="color: #4dabf7;">payment</strong> are completed by <strong>October 22nd</strong>.
-        </div>
-        """, unsafe_allow_html=True)
+    # Check database deadline
+    if ann_data and ann_data.get("deadline"):
+        deadline_dt = pd.to_datetime(ann_data["deadline"]).tz_convert("America/Toronto")
+        
+        if now < deadline_dt:
+            reminder_content = ann_data["message"]
+            text_color = "#e0e0e0"
+        else:
+            reminder_content = "📣 <strong>Notice:</strong> No new reminders for this week."
+            text_color = "#a0a0a5"
     else:
-        st.markdown("""
-        <div style="max-width: 850px; margin: 20px auto 0 auto; background: rgba(77, 171, 247, 0.08); border: 1px solid rgba(77, 171, 247, 0.3); border-left: 4px solid #4dabf7; padding: 12px 20px; border-radius: 12px; text-align: center; color: #a0a0a5; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            📣 <strong>Notice:</strong> No new reminders for this week.
-        </div>
-        """, unsafe_allow_html=True)
+        # Fallback if table is empty
+        reminder_content = "📣 <strong>Notice:</strong> No new reminders for this week."
+        text_color = "#a0a0a5"
+
+    st.markdown(f"""
+    <div style="max-width: 850px; margin: 20px auto 0 auto; background: rgba(77, 171, 247, 0.08); border: 1px solid rgba(77, 171, 247, 0.3); border-left: 4px solid #4dabf7; padding: 12px 20px; border-radius: 12px; text-align: center; color: {text_color}; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        {reminder_content}
+    </div>
+    """, unsafe_allow_html=True)
 
     st.divider()
 

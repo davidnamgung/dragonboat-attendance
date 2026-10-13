@@ -549,7 +549,7 @@ elif st.session_state.page == "Analytics":
     analytics_df['Circuit Practices'] = analytics_df['Circuit Practices'].fillna(0).astype(int)
 
     analytics_df = analytics_df.sort_values(by="Name", ascending=True).reset_index(drop=True)
-    
+
     # 4. Calculate Independent Attendance Rates (Allows >100% via Walk-ins)
     if num_pool_weeks > 0:
         analytics_df['Pool Attendance Rate'] = ((analytics_df['Pool Practices'] / num_pool_weeks) * 100).round(1).astype(str) + '%'
@@ -951,12 +951,14 @@ elif st.session_state.page == "Admin":
                 with c1:
                     offenders = no_shows_df['Name'].value_counts().reset_index()
                     offenders.columns = ['Name', 'Missed Practices']
+                    # Sort offenders alphabetically or by most missed practices
+                    offenders = offenders.sort_values(by="Name", ascending=True)
                     st.dataframe(offenders, use_container_width=True, hide_index=True)
                 with c2:
-                    # Merge to bring in Side, Gender, and Membership
                     enriched_no_shows = pd.merge(no_shows_df, df_roster, on="Name", how="left")
-                    log_display = enriched_no_shows[['Practice Date', 'Name', 'True Side', 'Gender', 'Membership']].sort_values(by='Practice Date', ascending=False)
+                    log_display = enriched_no_shows[['Practice Date', 'Name', 'True Side', 'Gender', 'Membership']].sort_values(by='Name', ascending=True)
                     st.dataframe(log_display, use_container_width=True, hide_index=True)
+                    
         with admin_tab3:
             st.markdown("### System Audit Log")
             st.caption("Scroll through the table to view all historical modifications.")

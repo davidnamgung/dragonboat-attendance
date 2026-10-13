@@ -1324,7 +1324,7 @@ elif st.session_state.page == "Sign Up":
                 
                 available_timeslots = [ts for ts in TIMESLOTS.keys() if (df_signups.empty or df_signups[(df_signups['Practice Date'] == ts) & (df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))].empty) and (df_waitlist.empty or df_waitlist[(df_waitlist['Practice Date'] == ts) & (df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')].empty)]                
                 if available_timeslots:
-                    st.markdown("<h3 style='text-align: center; color: white; margin-bottom: 20px;'>Sign Up for a Practice</h3>", unsafe_allow_html=True)
+                    st.markdown("<h3 style='text-align: center; color: white; margin-bottom: 20px;'>SIGN-UP FOR PRACTICE</h3>", unsafe_allow_html=True)
                     
                     # --- Compact, Centered Rule Notice ---
                     nc1, nc2, nc3 = st.columns([1, 3, 1])

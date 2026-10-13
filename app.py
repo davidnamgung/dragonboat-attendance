@@ -422,6 +422,13 @@ def render_card_header(ts_string):
         time_val = match.group(2)
         type_val = match.group(3).upper() # Capitalizes POOL or CIRCUIT
         
+        # Determine the training tier tag based on the timeslot string
+        tier_tag = ""
+        if "7:00 PM - 8:00 PM" in time_val and "Thursday" in date_val:
+            tier_tag = '<div style="display: inline-block; background-color: rgba(255, 122, 122, 0.15); border: 1px solid rgba(255, 122, 122, 0.4); color: #ff7a7a; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">Intermediate / Advanced</div>'
+        elif "6:00 PM - 7:00 PM" in time_val and "Friday" in date_val:
+            tier_tag = '<div style="display: inline-block; background-color: rgba(0, 230, 118, 0.15); border: 1px solid rgba(0, 230, 118, 0.4); color: #00e676; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">Beginner-Friendly / Back-To-Basics</div>'
+
         st.markdown(f"""
         <div style="margin-bottom: 15px;">
             <div style="display: inline-block; background-color: rgba(255, 51, 51, 0.15); border: 1px solid rgba(255, 51, 51, 0.5); box-shadow: 0 0 12px rgba(255, 51, 51, 0.3); color: #ff7a7a; padding: 4px 14px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; letter-spacing: 1.5px; margin-bottom: 8px;">{type_val}</div>
@@ -1279,8 +1286,20 @@ elif st.session_state.page == "Sign Up":
                 
                 if available_timeslots:
                     st.markdown("### Sign Up for a Practice")
-                    timeslot = st.radio("Select Practice:", available_timeslots)
-                    target_dt = TIMESLOTS[timeslot] 
+                    
+                    # Helper function to append readable training tags to the radio buttons
+                    def get_display_label(ts):
+                        if "Thursday" in ts and "7:00 PM" in ts:
+                            return f"{ts} — [Intermediate / Advanced]"
+                        elif "Friday" in ts and "6:00 PM" in ts:
+                            return f"{ts} — [Beginner-Friendly / Back-To-Basics]"
+                        return ts
+
+                    display_to_original = {get_display_label(ts): ts for ts in available_timeslots}
+                    selected_display = st.radio("Select Practice:", list(display_to_original.keys()))
+                    timeslot = display_to_original[selected_display]
+                    
+                    target_dt = TIMESLOTS[timeslot]
                     
                     is_circuit = "[Circuit]" in timeslot
                     is_pool = "[Pool]" in timeslot

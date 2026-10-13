@@ -1492,12 +1492,15 @@ elif st.session_state.page == "Sign Up":
                     
                     elif is_pool and active_pool_count >= 1:
                         can_signup = False
-                        st.markdown("""
-                        <div style="background: rgba(255, 51, 51, 0.08); border: 1px solid rgba(255, 51, 51, 0.3); padding: 12px 16px; border-radius: 10px; color: #ff7a7a; font-size: 0.95rem; text-align: center; margin-bottom: 15px;">
-                            🔒 <strong>Limit Reached:</strong> You are already signed up for a pool practice this week (Max: 1 per week).
-                            <br>You may sign-up for the Circuit Session as well.</br>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        
+                        # Centered column wrapper matching selection cards and rule notices
+                        warn_c1, warn_c2, warn_c3 = st.columns([1, 3, 1])
+                        with warn_c2:
+                            st.markdown("""
+                            <div style="background: rgba(255, 51, 51, 0.05); border: 1px solid rgba(255, 51, 51, 0.3); border-left: 3px solid #ff3333; padding: 8px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #ff7a7a; text-align: center;">
+                                🔒 <strong>Limit Reached:</strong> 1 pool session max per week (Circuit sign-up still available).
+                            </div>
+                            """, unsafe_allow_html=True)
                     
                     if can_signup:
                         ts_active = df_signups[(df_signups['Practice Date'] == timeslot) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()

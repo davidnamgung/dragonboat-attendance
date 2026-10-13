@@ -1388,24 +1388,33 @@ elif st.session_state.page == "Sign Up":
                     wl_record = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')] if not df_waitlist.empty else pd.DataFrame()
                         
                     if not active_record.empty:
-                        st.success(f"✅ You are actively signed up for **{day_name}**.")
-                        if st.button(f"🚨 Cancel {day_name} Attendance", key=f"cancel_att_{ts_str}"):
-                            record_id = int(active_record.iloc[0]['id'])
-                            supabase.table("signups").update({"Status": "Cancelled"}).eq("id", record_id).execute()
-                            log_action("Attendance Cancelled", f"{user_name} cancelled their spot for {day_name}")
-                            
-                            if not df_waitlist.empty:
-                                pending = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
-                                for idx, row in pending.iterrows():
-                                    if row['Side'] in [user_eff_side, 'Unknown', 'Ambidextrous'] or "[Circuit]" in ts_str:
-                                        supabase.table("waitlist").update({"Status": "Promoted"}).eq("id", int(row['id'])).execute()
-                                        supabase.table("signups").insert({"Practice Date": ts_str, "Name": row['Name'], "Status": "Active"}).execute()
-                                        log_action("Waitlist Promotion", f"{row['Name']} was automatically promoted to Active for {day_name}")
-                                        break
-                                        
-                            load_live_data.clear()
-                            load_audit_log.clear()
-                            st.rerun()
+                        act_c1, act_c2, act_c3 = st.columns([1, 3, 1])
+                        with act_c2:
+                            col_a, col_b = st.columns([3, 1], vertical_alignment="center")
+                            with col_a:
+                                st.markdown(f"""
+                                <div style="background: rgba(0, 230, 118, 0.08); border: 1px solid rgba(0, 230, 118, 0.3); padding: 8px 14px; border-radius: 8px; color: #00e676; font-size: 0.9rem;">
+                                    ✅ Signed up for <strong>{day_name}</strong>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            with col_b:
+                                if st.button(f"Cancel", key=f"cancel_att_{ts_str}", use_container_width=True):
+                                    record_id = int(active_record.iloc[0]['id'])
+                                    supabase.table("signups").update({"Status": "Cancelled"}).eq("id", record_id).execute()
+                                    log_action("Attendance Cancelled", f"{user_name} cancelled their spot for {day_name}")
+                                    
+                                    if not df_waitlist.empty:
+                                        pending = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
+                                        for idx, row in pending.iterrows():
+                                            if row['Side'] in [user_eff_side, 'Unknown', 'Ambidextrous'] or "[Circuit]" in ts_str:
+                                                supabase.table("waitlist").update({"Status": "Promoted"}).eq("id", int(row['id'])).execute()
+                                                supabase.table("signups").insert({"Practice Date": ts_str, "Name": row['Name'], "Status": "Active"}).execute()
+                                                log_action("Waitlist Promotion", f"{row['Name']} was automatically promoted to Active for {day_name}")
+                                                break
+                                                
+                                    load_live_data.clear()
+                                    load_audit_log.clear()
+                                    st.rerun()
                             
                     elif not wl_record.empty:
                         pending_all = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')

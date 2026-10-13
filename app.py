@@ -251,41 +251,24 @@ st.markdown("""
         border-radius: 16px;
     }   
 
-    /* Custom Action Button Colors */
-    /* Green Add Button */
-    div.stFormSubmitButton > button:has-text("Add to Roster") {
-        background-color: #00e676 !important;
-        color: #0e1117 !important;
-        font-weight: 700 !important;
-    }
-    div.stFormSubmitButton > button:has-text("Add to Roster"):hover {
-        background-color: #00c853 !important;
-    }
+    /* Custom Global Action Button Colors */
+    div.green-btn button { background-color: #00e676 !important; color: #0e1117 !important; font-weight: 700 !important; }
+    div.green-btn button:hover { background-color: #00c853 !important; }
 
-    /* Blue Save Changes Button */
-    div.stFormSubmitButton > button:has-text("Save Changes") {
-        background-color: #4dabf7 !important;
-        color: #0e1117 !important;
-        font-weight: 700 !important;
-    }
-    div.stFormSubmitButton > button:has-text("Save Changes"):hover {
-        background-color: #339af0 !important;
-    }
+    div.blue-btn button { background-color: #4dabf7 !important; color: #0e1117 !important; font-weight: 700 !important; }
+    div.blue-btn button:hover { background-color: #339af0 !important; }
 
-    /* Red Delete Button */
-    div.stFormSubmitButton > button:has-text("Delete") {
-        background-color: #ff3333 !important;
-        color: white !important;
-        font-weight: 700 !important;
-    }
-    div.stFormSubmitButton > button:has-text("Delete"):hover {
-        background-color: #e02828 !important;
-    }
+    div.red-btn button { background-color: #ff3333 !important; color: white !important; font-weight: 700 !important; }
+    div.red-btn button:hover { background-color: #e02828 !important; }
 
+    /* Streamlit buttons truncate text with an ellipsis on smaller screens */
     .stButton > button {
-        /* Scales fluidly between 0.85rem (mobile) and 1.1rem (desktop) */
         font-size: clamp(0.85rem, 1.2vw, 1.1rem) !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
+</style>
 
 </style>
 """, unsafe_allow_html=True)
@@ -995,8 +978,13 @@ elif st.session_state.page == "Admin":
             
             st.markdown("<br>", unsafe_allow_html=True)
             
+            # Wrap the button to apply the global Blue style
+            st.markdown('<div class="blue-btn">', unsafe_allow_html=True)
+            submit_attendance = st.button("Submit Attendance & Walk-Ins", use_container_width=True, key=f"sub_{ts_string}")
+            st.markdown('</div>', unsafe_allow_html=True)
+            
             # The submit button now operates outside a form, reading the dynamic checkbox states
-            if st.button("Submit Attendance & Walk-Ins", use_container_width=True, key=f"sub_{ts_string}"):
+            if submit_attendance:
                 updates_made = False
                 for record_id, is_present in checkbox_states.items():
                     new_status = "Attended" if is_present else "No-Show"
@@ -1118,22 +1106,11 @@ elif st.session_state.page == "Admin":
                         
                     st.markdown("<br>", unsafe_allow_html=True)
                     
-                    # Custom styled Green button using HTML wrapper
-                    st.markdown("""
-                    <style>
-                        div.add-btn button {
-                            background-color: #00e676 !important;
-                            color: #0e1117 !important;
-                            font-weight: 700 !important;
-                        }
-                        div.add-btn button:hover {
-                            background-color: #00c853 !important;
-                        }
-                    </style>
-                    """, unsafe_allow_html=True)
+                    st.markdown('<div class="green-btn">', unsafe_allow_html=True)
+                    add_clicked = st.button("Add to Roster", use_container_width=True, key="btn_add_roster")
+                    st.markdown('</div>', unsafe_allow_html=True)
                     
-                    st.markdown('<div class="add-btn">', unsafe_allow_html=True)
-                    if st.button("Add to Roster", use_container_width=True, key="btn_add_roster"):
+                    if add_clicked:
                         if new_name.strip() == "":
                             st.error("Please enter a valid name.")
                         else:
@@ -1190,39 +1167,17 @@ elif st.session_state.page == "Admin":
                             
                         st.markdown("<br>", unsafe_allow_html=True)
                         
-                        # Inject custom styles for Blue Save and Red Delete buttons
-                        st.markdown("""
-                        <style>
-                            div.save-btn button {
-                                background-color: #4dabf7 !important;
-                                color: #0e1117 !important;
-                                font-weight: 700 !important;
-                            }
-                            div.save-btn button:hover {
-                                background-color: #339af0 !important;
-                            }
-                            div.del-btn button {
-                                background-color: #ff3333 !important;
-                                color: white !important;
-                                font-weight: 700 !important;
-                            }
-                            div.del-btn button:hover {
-                                background-color: #e02828 !important;
-                            }
-                        </style>
-                        """, unsafe_allow_html=True)
-
                         b_col1, b_col2 = st.columns(2)
                         with b_col1:
-                            st.markdown('<div class="save-btn">', unsafe_allow_html=True)
+                            st.markdown('<div class="blue-btn">', unsafe_allow_html=True)
                             save_clicked = st.button("💾 Save Changes", use_container_width=True, key="btn_save_roster")
                             st.markdown('</div>', unsafe_allow_html=True)
                             
                         with b_col2:
-                            st.markdown('<div class="del-btn">', unsafe_allow_html=True)
+                            st.markdown('<div class="red-btn">', unsafe_allow_html=True)
                             delete_clicked = st.button("🗑️ Delete", use_container_width=True, key="btn_delete_roster")
                             st.markdown('</div>', unsafe_allow_html=True)
-
+                        
                         if save_clicked:
                             if upd_name.strip() == "":
                                 st.error("Name cannot be blank.")
@@ -1319,7 +1274,11 @@ elif st.session_state.page == "Admin":
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            if st.button("💾 Save Payment & Waiver Updates", use_container_width=True):
+            st.markdown('<div class="blue-btn">', unsafe_allow_html=True)
+            save_financials = st.button("💾 Save Payment & Waiver Updates", use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            if save_financials:
                 updates_made = False
                 
                 # Compare the edited table with the original database to find what changed
@@ -1371,17 +1330,13 @@ elif st.session_state.page == "Admin":
                             
                         st.markdown("<br>", unsafe_allow_html=True)
                         
-                        # Injecting blue button style for Save Announcement
-                        st.markdown("""
-                        <style>
-                            div.ann-btn button { background-color: #4dabf7 !important; color: #0e1117 !important; font-weight: 700 !important; }
-                            div.ann-btn button:hover { background-color: #339af0 !important; }
-                        </style>
-                        """, unsafe_allow_html=True)
+                        st.markdown('<div class="blue-btn">', unsafe_allow_html=True)
+                        save_announcement = st.form_submit_button("💾 Save Announcement", use_container_width=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
                         
-                        st.markdown('<div class="ann-btn">', unsafe_allow_html=True)
-                        if st.form_submit_button("💾 Save Announcement", use_container_width=True):
+                        if save_announcement:
                             combined_dt = datetime.combine(new_date, new_time)
+                            
                             loc_dt = tz.localize(combined_dt)
                             
                             # Use update instead of upsert to avoid primary key conflict errors

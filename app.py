@@ -421,7 +421,7 @@ def render_card_header(ts_string):
         time_val = match.group(2)
         type_val = match.group(3).upper()
         
-        # Determine the training tier tag based on tags and times
+        # Explicitly check each unique timeslot to prevent overlapping rule conditions
         tier_tag = ""
         if "[Circuit]" in ts_string:
             tier_tag = '<div style="display: inline-block; background-color: rgba(77, 171, 247, 0.15); border: 1px solid rgba(77, 171, 247, 0.4); color: #4dabf7; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">For All</div>'
@@ -1354,7 +1354,6 @@ elif st.session_state.page == "Sign Up":
                                 tag = '<div style="font-size: 0.75rem; font-weight: 800; color: #a0a0a5; letter-spacing: 1px;">SESSION</div>'
                             
                             options_map[ts] = tag
-
                         selected_ts = st.session_state.selected_timeslot
                         
                         for ts in available_timeslots:

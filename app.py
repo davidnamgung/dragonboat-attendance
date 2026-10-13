@@ -1343,8 +1343,9 @@ elif st.session_state.page == "Admin":
                     st.info("No changes detected.")
 
         with admin_tab6:
-            st.markdown("### Manage Sign-Up Portal Announcement")
-            st.caption("Update the global reminder banner shown to all users. Supports raw HTML for custom styling.")
+            # Centered headers to match the constrained form
+            st.markdown("<h3 style='text-align: center;'>Manage Sign-Up Portal Announcement</h3>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center; color: #a0a0a5; font-size: 0.9rem; margin-bottom: 25px;'>Update the global reminder banner shown to all users. Supports raw HTML for custom styling.</p>", unsafe_allow_html=True)
             
             ann_data = load_announcement()
             
@@ -1355,8 +1356,45 @@ elif st.session_state.page == "Admin":
             else:
                 curr_deadline = now + timedelta(days=7)
 
-            with st.container(border=True):
-                with st.form("announcement_form"):
+            # --- Centered Layout Wrapper ---
+            edit_c1, edit_c2, edit_c3 = st.columns([1, 2, 1])
+            with edit_c2:
+                with st.container(border=True):
+                    with st.form("announcement_form"):
+                        new_msg = st.text_area("Active Reminder Message (HTML/Markdown)", value=curr_msg, height=120)
+                        
+                        c1, c2 = st.columns(2)
+                        with c1:
+                            new_date = st.date_input("Deadline Date", value=curr_deadline.date())
+                        with c2:
+                            new_time = st.time_input("Deadline Time", value=curr_deadline.time())
+                            
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        
+                        # Injecting blue button style for Save Announcement
+                        st.markdown("""
+                        <style>
+                            div.ann-btn button { background-color: #4dabf7 !important; color: #0e1117 !important; font-weight: 700 !important; }
+                            div.ann-btn button:hover { background-color: #339af0 !important; }
+                        </style>
+                        """, unsafe_allow_html=True)
+                        
+                        st.markdown('<div class="ann-btn">', unsafe_allow_html=True)
+                        if st.form_submit_button("💾 Save Announcement", use_container_width=True):
+                            combined_dt = datetime.combine(new_date, new_time)
+                            loc_dt = tz.localize(combined_dt)
+                            
+                            # Use update instead of upsert to avoid primary key conflict errors
+                            supabase.table("announcements").update({
+                                "message": new_msg,
+                                "deadline": loc_dt.isoformat()
+                            }).eq("id", 1).execute()
+                            
+                            log_action("Announcement Updated", "Admin modified the global portal reminder.")
+                            load_announcement.clear()
+                            st.toast("Announcement saved successfully!", icon="💾")
+                            st.rerun()
+                        st.markdown('</div>', unsafe_allow_html=True)
                     new_msg = st.text_area("Active Reminder Message (HTML/Markdown)", value=curr_msg, height=120)
                     
                     c1, c2 = st.columns(2)
@@ -1420,14 +1458,11 @@ elif st.session_state.page == "Sign Up":
         reminder_content = "📣 <strong>Notice:</strong> No new reminders for this week."
         text_color = "#a0a0a5"
 
-    # Centered column wrapper matching selection cards and rule notices
-    ann_c1, ann_c2, ann_c3 = st.columns([1, 3, 1])
-    with ann_c2:
-        st.markdown(f"""
-        <div style="width: 100%; margin: 5px auto 10px auto; background: rgba(77, 171, 247, 0.08); border: 1px solid rgba(77, 171, 247, 0.3); border-left: 4px solid #4dabf7; padding: 10px 18px; border-radius: 10px; text-align: center; color: {text_color}; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            {reminder_content}
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style="max-width: 850px; margin: 20px auto 0 auto; background: rgba(77, 171, 247, 0.08); border: 1px solid rgba(77, 171, 247, 0.3); border-left: 4px solid #4dabf7; padding: 12px 20px; border-radius: 12px; text-align: center; color: {text_color}; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        {reminder_content}
+    </div>
+    """, unsafe_allow_html=True)
 
     st.divider()
 

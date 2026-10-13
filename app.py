@@ -251,15 +251,33 @@ st.markdown("""
         border-radius: 16px;
     }   
 
-    /* Custom Global Action Button Colors */
-    div.green-btn button { background-color: #00e676 !important; color: #0e1117 !important; font-weight: 700 !important; }
-    div.green-btn button:hover { background-color: #00c853 !important; }
+    /* Custom Global Action Button Hooks */
+    .element-container:has(.btn-green-hook) + .element-container button {
+        background-color: #00e676 !important;
+        color: #0e1117 !important;
+        border-color: #00c853 !important;
+    }
+    .element-container:has(.btn-green-hook) + .element-container button:hover {
+        background-color: #00c853 !important;
+    }
 
-    div.blue-btn button { background-color: #4dabf7 !important; color: #0e1117 !important; font-weight: 700 !important; }
-    div.blue-btn button:hover { background-color: #339af0 !important; }
+    .element-container:has(.btn-blue-hook) + .element-container button {
+        background-color: #4dabf7 !important;
+        color: #0e1117 !important;
+        border-color: #339af0 !important;
+    }
+    .element-container:has(.btn-blue-hook) + .element-container button:hover {
+        background-color: #339af0 !important;
+    }
 
-    div.red-btn button { background-color: #ff3333 !important; color: white !important; font-weight: 700 !important; }
-    div.red-btn button:hover { background-color: #e02828 !important; }
+    .element-container:has(.btn-red-hook) + .element-container button {
+        background-color: #ff3333 !important;
+        color: white !important;
+        border-color: #e02828 !important;
+    }
+    .element-container:has(.btn-red-hook) + .element-container button:hover {
+        background-color: #e02828 !important;
+    }
 
     /* Streamlit buttons truncate text with an ellipsis on smaller screens */
     .stButton > button {
@@ -977,12 +995,10 @@ elif st.session_state.page == "Admin":
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            # Wrap the button to apply the global Blue style
-            st.markdown('<div class="blue-btn">', unsafe_allow_html=True)
+            # Invisible Hook directly before the button
+            st.markdown('<div class="btn-blue-hook"></div>', unsafe_allow_html=True)
             submit_attendance = st.button("Submit Attendance & Walk-Ins", use_container_width=True, key=f"sub_{ts_string}")
-            st.markdown('</div>', unsafe_allow_html=True)
             
-            # The submit button now operates outside a form, reading the dynamic checkbox states
             if submit_attendance:
                 updates_made = False
                 for record_id, is_present in checkbox_states.items():
@@ -1105,9 +1121,8 @@ elif st.session_state.page == "Admin":
                         
                     st.markdown("<br>", unsafe_allow_html=True)
                     
-                    st.markdown('<div class="green-btn">', unsafe_allow_html=True)
+                    st.markdown('<div class="btn-green-hook"></div>', unsafe_allow_html=True)
                     add_clicked = st.button("Add to Roster", use_container_width=True, key="btn_add_roster")
-                    st.markdown('</div>', unsafe_allow_html=True)
                     
                     if add_clicked:
                         if new_name.strip() == "":
@@ -1168,14 +1183,12 @@ elif st.session_state.page == "Admin":
                         
                         b_col1, b_col2 = st.columns(2)
                         with b_col1:
-                            st.markdown('<div class="blue-btn">', unsafe_allow_html=True)
+                            st.markdown('<div class="btn-blue-hook"></div>', unsafe_allow_html=True)
                             save_clicked = st.button("💾 Save Changes", use_container_width=True, key="btn_save_roster")
-                            st.markdown('</div>', unsafe_allow_html=True)
                             
                         with b_col2:
-                            st.markdown('<div class="red-btn">', unsafe_allow_html=True)
+                            st.markdown('<div class="btn-red-hook"></div>', unsafe_allow_html=True)
                             delete_clicked = st.button("🗑️ Delete", use_container_width=True, key="btn_delete_roster")
-                            st.markdown('</div>', unsafe_allow_html=True)
                         
                         if save_clicked:
                             if upd_name.strip() == "":
@@ -1273,9 +1286,8 @@ elif st.session_state.page == "Admin":
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            st.markdown('<div class="blue-btn">', unsafe_allow_html=True)
+            st.markdown('<div class="btn-blue-hook"></div>', unsafe_allow_html=True)
             save_financials = st.button("💾 Save Payment & Waiver Updates", use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
             
             if save_financials:
                 updates_made = False
@@ -1329,9 +1341,8 @@ elif st.session_state.page == "Admin":
                             
                         st.markdown("<br>", unsafe_allow_html=True)
                         
-                        st.markdown('<div class="blue-btn">', unsafe_allow_html=True)
+                        st.markdown('<div class="btn-blue-hook"></div>', unsafe_allow_html=True)
                         save_announcement = st.form_submit_button("💾 Save Announcement", use_container_width=True)
-                        st.markdown('</div>', unsafe_allow_html=True)
                         
                         if save_announcement:
                             combined_dt = datetime.combine(new_date, new_time)

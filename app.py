@@ -417,18 +417,18 @@ def render_card_header(ts_string):
     match = re.match(r"(.*?)\s+(\d{1,2}:\d{2}\s*[AP]M\s*-\s*\d{1,2}:\d{2}\s*[AP]M)\s*\[(.*?)\]", ts_string)
     
     if match:
-        date_val = match.group(1) # Converts "Thursday, October 8th" to uppercase
+        date_val = match.group(1)
         time_val = match.group(2)
         type_val = match.group(3).upper()
         
-        # Determine the training tier tag based on the timeslot
+        # Determine the training tier tag based on tags and times
         tier_tag = ""
-        if "7:00 PM - 8:00 PM" in time_val and "Thursday" in date_val:
+        if "[Circuit]" in ts_string:
+            tier_tag = '<div style="display: inline-block; background-color: rgba(77, 171, 247, 0.15); border: 1px solid rgba(77, 171, 247, 0.4); color: #4dabf7; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">For All</div>'
+        elif "7:00 PM" in time_val and "Thursday" in date_val:
             tier_tag = '<div style="display: inline-block; background-color: rgba(255, 122, 122, 0.15); border: 1px solid rgba(255, 122, 122, 0.4); color: #ff7a7a; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">Intermediate / Advanced</div>'
-        elif "6:00 PM - 7:00 PM" in time_val and "Friday" in date_val:
+        elif "6:00 PM" in time_val and "Friday" in date_val:
             tier_tag = '<div style="display: inline-block; background-color: rgba(0, 230, 118, 0.15); border: 1px solid rgba(0, 230, 118, 0.4); color: #00e676; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">Beginner-Friendly / Back-To-Basics</div>'
-        elif "5:00 PM - 6:00 PM" in time_val and "Friday" in date_val:
-            tier_tag = '<div style="display: inline-block; background-color: rgba(108, 111, 120, 0.15); border: 1px solid rgba(108, 111, 120, 0.4); color: #a0a0a5; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">For All</div>'
 
         st.markdown(f"""
         <div style="margin-bottom: 15px;">
@@ -1321,17 +1321,18 @@ elif st.session_state.page == "Sign Up":
                             
                 st.divider()
                 
-                available_timeslots = [ts for ts in TIMESLOTS.keys() if (df_signups.empty or df_signups[(df_signups['Practice Date'] == ts) & (df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))].empty) and (df_waitlist.empty or df_waitlist[(df_waitlist['Practice Date'] == ts) & (df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')].empty)]
-                
+                available_timeslots = [ts for ts in TIMESLOTS.keys() if (df_signups.empty or df_signups[(df_signups['Practice Date'] == ts) & (df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))].empty) and (df_waitlist.empty or df_waitlist[(df_waitlist['Practice Date'] == ts) & (df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')].empty)]                
                 if available_timeslots:
                     st.markdown("### Sign Up for a Practice")
                     
-                    # --- Emphasized Callout Container for Rules ---
-                    st.markdown("""
-                    <div style="background: rgba(255, 51, 51, 0.05); border: 1px solid rgba(255, 51, 51, 0.3); border-left: 4px solid #ff3333; padding: 12px 18px; border-radius: 10px; margin-bottom: 20px; font-size: 0.95rem; color: #e0e0e0;">
-                        <strong>⚠️ Notice:</strong> Select your preferred timeslot below. <em>Attendance is strictly limited to 1 pool session AND 1 circuit spot per week.</em>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    # --- Compact, Centered Rule Notice ---
+                    nc1, nc2, nc3 = st.columns([1, 3, 1])
+                    with nc2:
+                        st.markdown("""
+                        <div style="background: rgba(255, 51, 51, 0.05); border: 1px solid rgba(255, 51, 51, 0.3); border-left: 3px solid #ff3333; padding: 8px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #a0a0a5; text-align: center;">
+                            ⚠️ Limit: <strong style="color: #e0e0e0;">1 pool session AND 1 circuit spot</strong> per week.
+                        </div>
+                        """, unsafe_allow_html=True)
 
                     if "selected_timeslot" not in st.session_state:
                         st.session_state.selected_timeslot = available_timeslots[0]
@@ -1340,17 +1341,17 @@ elif st.session_state.page == "Sign Up":
                     with sc2:
                         options_map = {}
                         for ts in available_timeslots:
-                            if "Thursday" in ts and "7:00 PM" in ts:
-                                # Intermediate / Advanced (Soft Red)
-                                tag = '<div style="font-size: 0.8rem; font-weight: 800; color: #ff7a7a; letter-spacing: 1px;">INTERMEDIATE / ADVANCED</div>'
-                            elif "Friday" in ts and "6:00 PM" in ts:
-                                # Beginner / Back-To-Basics (Green)
-                                tag = '<div style="font-size: 0.8rem; font-weight: 800; color: #00e676; letter-spacing: 1px;">BEGINNER-FRIENDLY / BACK-TO-BASICS</div>'
-                            elif "Friday" in ts and "5:00 PM" in ts:
+                            if "[Circuit]" in ts:
                                 # For All Circuit (Blue)
-                                tag = '<div style="font-size: 0.8rem; font-weight: 800; color: #4dabf7; letter-spacing: 1px;">FOR ALL</div>'
+                                tag = '<div style="font-size: 0.75rem; font-weight: 800; color: #4dabf7; letter-spacing: 1px;">FOR ALL</div>'
+                            elif "7:00 PM" in ts:
+                                # Intermediate / Advanced (Soft Red)
+                                tag = '<div style="font-size: 0.75rem; font-weight: 800; color: #ff7a7a; letter-spacing: 1px;">INTERMEDIATE / ADVANCED</div>'
+                            elif "6:00 PM" in ts:
+                                # Beginner / Back-To-Basics (Green)
+                                tag = '<div style="font-size: 0.75rem; font-weight: 800; color: #00e676; letter-spacing: 1px;">BEGINNER-FRIENDLY / BACK-TO-BASICS</div>'
                             else:
-                                tag = '<div style="font-size: 0.8rem; font-weight: 800; color: #a0a0a5; letter-spacing: 1px;">SESSION</div>'
+                                tag = '<div style="font-size: 0.75rem; font-weight: 800; color: #a0a0a5; letter-spacing: 1px;">SESSION</div>'
                             
                             options_map[ts] = tag
 
@@ -1364,7 +1365,7 @@ elif st.session_state.page == "Sign Up":
                                 col_a, col_b = st.columns([4, 1], vertical_alignment="center")
                                 with col_a:
                                     st.markdown(f"""
-                                    <div style="font-weight: 700; color: white; font-size: 1.1rem; margin-bottom: 4px;">{ts.upper()}</div>
+                                    <div style="font-weight: 700; color: white; font-size: 1.05rem; margin-bottom: 3px;">{ts.upper()}</div>
                                     {tag_html}
                                     """, unsafe_allow_html=True)
                                 with col_b:

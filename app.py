@@ -282,6 +282,11 @@ st.markdown("""
         background-color: #e02828 !important;
     }
 
+    .stButton > button {
+        /* Scales fluidly between 0.85rem (mobile) and 1.1rem (desktop) */
+        font-size: clamp(0.85rem, 1.2vw, 1.1rem) !important;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 

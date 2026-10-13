@@ -1233,13 +1233,17 @@ elif st.session_state.page == "Sign Up":
             st.session_state.current_user = None
 
         if not st.session_state.current_user:
-            name_list = df_roster['Name'].tolist() if not df_roster.empty else []
-            selected_name = st.selectbox("Select your Full Name", options=name_list, index=None, placeholder="Start typing your name here...")
-            
-            if selected_name:
-                if st.button("Access Portal", use_container_width=True):
-                    st.session_state.current_user = selected_name
-                    st.rerun()
+            login_c1, login_c2, login_c3 = st.columns([1, 3, 1])
+            with login_c2:
+                with st.container(border=True):
+                    name_list = df_roster['Name'].tolist() if not df_roster.empty else []
+                    selected_name = st.selectbox("Select your Full Name", options=name_list, index=None, placeholder="Start typing your name here...")
+                    
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    if selected_name:
+                        if st.button("Access Portal", use_container_width=True):
+                            st.session_state.current_user = selected_name
+                            st.rerun()
         else:
             user_name = st.session_state.current_user
             

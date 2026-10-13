@@ -414,20 +414,21 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
 def render_card_header(ts_string):
-    # This extracts: Group 1 (Date), Group 2 (Time Range), Group 3 (Type)
     match = re.match(r"(.*?)\s+(\d{1,2}:\d{2}\s*[AP]M\s*-\s*\d{1,2}:\d{2}\s*[AP]M)\s*\[(.*?)\]", ts_string)
     
     if match:
         date_val = match.group(1)
         time_val = match.group(2)
-        type_val = match.group(3).upper() # Capitalizes POOL or CIRCUIT
+        type_val = match.group(3).upper()
         
-        # Determine the training tier tag based on the timeslot string
+        # Determine the training tier tag based on the timeslot
         tier_tag = ""
         if "7:00 PM - 8:00 PM" in time_val and "Thursday" in date_val:
             tier_tag = '<div style="display: inline-block; background-color: rgba(255, 122, 122, 0.15); border: 1px solid rgba(255, 122, 122, 0.4); color: #ff7a7a; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">Intermediate / Advanced</div>'
         elif "6:00 PM - 7:00 PM" in time_val and "Friday" in date_val:
             tier_tag = '<div style="display: inline-block; background-color: rgba(0, 230, 118, 0.15); border: 1px solid rgba(0, 230, 118, 0.4); color: #00e676; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">Beginner-Friendly / Back-To-Basics</div>'
+        elif "5:00 PM - 6:00 PM" in time_val and "Friday" in date_val:
+            tier_tag = '<div style="display: inline-block; background-color: rgba(108, 111, 120, 0.15); border: 1px solid rgba(108, 111, 120, 0.4); color: #a0a0a5; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">For All</div>'
 
         st.markdown(f"""
         <div style="margin-bottom: 15px;">
@@ -1295,6 +1296,8 @@ elif st.session_state.page == "Sign Up":
                             return f"{ts} — [Intermediate / Advanced]"
                         elif "Friday" in ts and "6:00 PM" in ts:
                             return f"{ts} — [Beginner-Friendly / Back-To-Basics]"
+                        elif "Friday" in ts and "5:00 PM" in ts:
+                            return f"{ts} — [For All]"
                         return ts
 
                     display_to_original = {get_display_label(ts): ts for ts in available_timeslots}

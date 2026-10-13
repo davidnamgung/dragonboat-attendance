@@ -1395,6 +1395,7 @@ elif st.session_state.page == "Sign Up":
                         st.markdown("""
                         <div style="background: rgba(255, 51, 51, 0.08); border: 1px solid rgba(255, 51, 51, 0.3); padding: 12px 16px; border-radius: 10px; color: #ff7a7a; font-size: 0.95rem; text-align: center; margin-bottom: 15px;">
                             🔒 <strong>Limit Reached:</strong> You are already signed up for a pool practice this week (Max: 1 per week).
+                            <br>You may sign-up for the Circuit Session as well</br>
                         </div>
                         """, unsafe_allow_html=True)
                     

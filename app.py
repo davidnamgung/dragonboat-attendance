@@ -1169,6 +1169,8 @@ elif st.session_state.page == "Admin":
                                 st.rerun()
                     else:
                         st.info("Select a paddler above to edit details or delete.")
+        
+        
         with admin_tab5:
             st.markdown("### Financial & Waiver Tracking")
             st.markdown("Check the boxes for completed waivers and use the dropdowns to track payments. Click Save when finished.")

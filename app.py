@@ -1016,112 +1016,129 @@ elif st.session_state.page == "Admin":
                 st.markdown("<div class='app-banner'>No system actions logged yet.</div>", unsafe_allow_html=True)
 
         with admin_tab4:
-            # Constrained Center Column Wrapper for Forms
-            mc1, mc2, mc3 = st.columns([1, 4, 1])
-            with mc2:
-                st.markdown("### Add New Paddler")
-                with st.form("add_member_form"):
-                    new_name = st.text_input("Full Name (Must be unique)")
-                    new_gender = st.selectbox("Gender", ["Open", "Women", "Unknown"], index=2)
-                    new_side = st.selectbox("True Side", ["Left", "Right", "Ambidextrous", "Unknown"], index=3)
-                    new_mem = st.selectbox("Membership Tier", [
-                        "Fall ONLY (without circuit)", 
-                        "BOTH semesters (with circuit)", 
-                        "Winter ONLY (without circuit)", 
-                        "BOTH semesters (without circuit)",
-                        "Unknown"
-                    ], index=4)
-                        
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    if st.form_submit_button("Add to Roster", use_container_width=True):
-                        if new_name.strip() == "":
-                            st.error("Please enter a valid name.")
-                        else:
-                            existing_names = df_roster['Name'].str.lower().tolist() if not df_roster.empty else []
-                            if new_name.strip().lower() in existing_names:
-                                st.error(f"❌ {new_name} is already in the roster.")
-                            else:
-                                supabase.table("roster").insert({
-                                    "Name": new_name.strip(),
-                                    "True Side": new_side,
-                                    "Gender": new_gender,
-                                    "Membership": new_mem
-                                }).execute()
-                                
-                                log_action("Roster Addition", f"{new_name} was added to the database.")
-                                load_roster.clear()
-                                load_audit_log.clear()
-                                st.toast(f"{new_name} added to roster!", icon="✅")
-                                st.rerun()
+            st.markdown("### Manage Roster")
+            st.markdown("<br>", unsafe_allow_html=True)
 
-                st.divider()
-                
-                st.markdown("### Edit or Remove Paddler")
-                all_roster_names = sorted(df_roster['Name'].tolist()) if not df_roster.empty else []
-                edit_name = st.selectbox("Select Paddler to Edit/Remove", all_roster_names, index=None, placeholder="Search for a name...")
-                
-                if edit_name:
-                    user_data = df_roster[df_roster['Name'] == edit_name].iloc[0]
-                    
-                    with st.form(key=f"edit_form_{edit_name}"):
-                        upd_name = st.text_input("Full Name", value=user_data['Name'])
-                        
-                        genders = ["Open", "Women", "Unknown"]
-                        curr_gender = user_data['Gender'] if user_data['Gender'] in genders else "Unknown"
-                        upd_gender = st.selectbox("Gender", genders, index=genders.index(curr_gender))
-                        
-                        sides = ["Left", "Right", "Ambidextrous", "Unknown"]
-                        curr_side = user_data.get('True Side', 'Unknown')
-                        curr_side = curr_side if curr_side in sides else "Unknown"
-                        upd_side = st.selectbox("True Side", sides, index=sides.index(curr_side))
-                        
-                        mems = [
+            # Create a 2-column layout to place Adding on the left and Editing on the right
+            col_add, col_edit = st.columns(2, gap="large")
+
+            # --- LEFT COLUMN: ADD NEW PADDLER ---
+            with col_add:
+                with st.container(border=True):
+                    st.markdown("#### ➕ Add New Paddler")
+                    with st.form("add_member_form"):
+                        new_name = st.text_input("Full Name (Must be unique)")
+                        new_gender = st.selectbox("Gender", ["Open", "Women", "Unknown"], index=2)
+                        new_side = st.selectbox("True Side", ["Left", "Right", "Ambidextrous", "Unknown"], index=3)
+                        new_mem = st.selectbox("Membership Tier", [
                             "Fall ONLY (without circuit)", 
                             "BOTH semesters (with circuit)", 
                             "Winter ONLY (without circuit)", 
                             "BOTH semesters (without circuit)",
                             "Unknown"
-                        ]
-                        curr_mem = user_data.get('Membership', 'Unknown')
-                        curr_mem = curr_mem if curr_mem in mems else "Unknown"
-                        upd_mem = st.selectbox("Membership Tier", mems, index=mems.index(curr_mem))
+                        ], index=4)
                             
                         st.markdown("<br>", unsafe_allow_html=True)
-                        
-                        if st.form_submit_button("💾 Save Changes", use_container_width=True):
-                            if upd_name.strip() == "":
-                                st.error("Name cannot be blank.")
+                        if st.form_submit_button("Add to Roster", use_container_width=True):
+                            if new_name.strip() == "":
+                                st.error("Please enter a valid name.")
                             else:
-                                supabase.table("roster").update({
-                                    "Name": upd_name.strip(),
-                                    "True Side": upd_side,
-                                    "Gender": upd_gender,
-                                    "Membership": upd_mem
-                                }).eq("Name", edit_name).execute()
+                                existing_names = df_roster['Name'].str.lower().tolist() if not df_roster.empty else []
+                                if new_name.strip().lower() in existing_names:
+                                    st.error(f"❌ {new_name} is already in the roster.")
+                                else:
+                                    supabase.table("roster").insert({
+                                        "Name": new_name.strip(),
+                                        "True Side": new_side,
+                                        "Gender": new_gender,
+                                        "Membership": new_mem
+                                    }).execute()
+                                    
+                                    log_action("Roster Addition", f"{new_name} was added to the database.")
+                                    load_roster.clear()
+                                    load_audit_log.clear()
+                                    st.toast(f"{new_name} added to roster!", icon="✅")
+                                    st.rerun()
+
+            # --- RIGHT COLUMN: EDIT OR REMOVE PADDLER ---
+            with col_edit:
+                with st.container(border=True):
+                    st.markdown("#### ✏️ Edit or Remove Paddler")
+                    
+                    # Search bar integrated directly as the selection mechanism
+                    all_roster_names = sorted(df_roster['Name'].tolist()) if not df_roster.empty else []
+                    edit_name = st.selectbox("Search / Select Paddler", all_roster_names, index=None, placeholder="Type a name to search...")
+                    
+                    if edit_name:
+                        user_data = df_roster[df_roster['Name'] == edit_name].iloc[0]
+                        
+                        with st.form(key=f"edit_form_{edit_name}"):
+                            upd_name = st.text_input("Full Name", value=user_data['Name'])
+                            
+                            genders = ["Open", "Women", "Unknown"]
+                            curr_gender = user_data['Gender'] if user_data['Gender'] in genders else "Unknown"
+                            upd_gender = st.selectbox("Gender", genders, index=genders.index(curr_gender))
+                            
+                            sides = ["Left", "Right", "Ambidextrous", "Unknown"]
+                            curr_side = user_data.get('True Side', 'Unknown')
+                            curr_side = curr_side if curr_side in sides else "Unknown"
+                            upd_side = st.selectbox("True Side", sides, index=sides.index(curr_side))
+                            
+                            mems = [
+                                "Fall ONLY (without circuit)", 
+                                "BOTH semesters (with circuit)", 
+                                "Winter ONLY (without circuit)", 
+                                "BOTH semesters (without circuit)",
+                                "Unknown"
+                            ]
+                            curr_mem = user_data.get('Membership', 'Unknown')
+                            curr_mem = curr_mem if curr_mem in mems else "Unknown"
+                            upd_mem = st.selectbox("Membership Tier", mems, index=mems.index(curr_mem))
                                 
-                                if upd_name.strip() != edit_name:
-                                    supabase.table("signups").update({"Name": upd_name.strip()}).eq("Name", edit_name).execute()
-                                    supabase.table("waitlist").update({"Name": upd_name.strip()}).eq("Name", edit_name).execute()
+                            st.markdown("<br>", unsafe_allow_html=True)
+                            
+                            # Place Save Changes and Delete side-by-side inside the form container
+                            b_col1, b_col2 = st.columns(2)
+                            with b_col1:
+                                save_submitted = st.form_submit_button("💾 Save Changes", use_container_width=True)
+                            with b_col2:
+                                delete_requested = st.form_submit_button("🗑️ Delete", use_container_width=True)
+
+                            if save_submitted:
+                                if upd_name.strip() == "":
+                                    st.error("Name cannot be blank.")
+                                else:
+                                    supabase.table("roster").update({
+                                        "Name": upd_name.strip(),
+                                        "True Side": upd_side,
+                                        "Gender": upd_gender,
+                                        "Membership": upd_mem
+                                    }).eq("Name", edit_name).execute()
+                                    
+                                    if upd_name.strip() != edit_name:
+                                        supabase.table("signups").update({"Name": upd_name.strip()}).eq("Name", edit_name).execute()
+                                        supabase.table("waitlist").update({"Name": upd_name.strip()}).eq("Name", edit_name).execute()
+                                    
+                                    log_action("Roster Updated", f"Admin updated profile for {edit_name}")
+                                    load_roster.clear()
+                                    load_live_data.clear()
+                                    load_audit_log.clear()
+                                    st.toast(f"Profile updated for {upd_name.strip()}", icon="💾")
+                                    st.rerun()
+
+                            if delete_requested:
+                                supabase.table("roster").delete().eq("Name", edit_name).execute()
+                                supabase.table("signups").delete().eq("Name", edit_name).execute()
+                                supabase.table("waitlist").delete().eq("Name", edit_name).execute()
                                 
-                                log_action("Roster Updated", f"Admin updated profile for {edit_name}")
+                                log_action("Roster Removal", f"{edit_name} was permanently removed from the system.")
                                 load_roster.clear()
                                 load_live_data.clear()
                                 load_audit_log.clear()
-                                st.toast(f"Profile updated for {upd_name.strip()}", icon="💾")
+                                st.toast(f"{edit_name} removed from roster.", icon="🗑️")
                                 st.rerun()
-
-                    with st.popover(f"🗑️ Permanently Remove {edit_name}", use_container_width=True):
-                        st.error(f"**Warning:** This will permanently delete **{edit_name}** from the roster database and instantly wipe out any active sign-ups or waitlist queue positions they currently hold. This cannot be undone.")
-                        if st.button("Confirm Permanent Removal", key=f"confirm_remove_{edit_name}"):
-                            supabase.table("roster").delete().eq("Name", edit_name).execute()
-                            supabase.table("signups").delete().eq("Name", edit_name).execute()
-                            supabase.table("waitlist").delete().eq("Name", edit_name).execute()
-                            
-                            log_action("Roster Removal", f"{edit_name} was permanently removed from the system.")
-                            load_roster.clear()
-                            load_live_data.clear()
-                            load_audit_log.clear()
-                            st.rerun()
+                    else:
+                        st.info("Select a paddler above to edit details or delete.")
 
         with admin_tab5:
             st.markdown("### Financial & Waiver Tracking")

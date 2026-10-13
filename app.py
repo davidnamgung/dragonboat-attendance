@@ -1372,7 +1372,7 @@ elif st.session_state.page == "Sign Up":
                             </div>
                             """, unsafe_allow_html=True)
                         with card_col2:
-                            with st.popover("🔄 Update", use_container_width=True):
+                            with st.popover("🔄 Update Paddling Side", use_container_width=True):
                                 new_side = st.radio("Select your True Side:", ["Left", "Right", "Ambidextrous", "Unknown"], index=["Left", "Right", "Ambidextrous", "Unknown"].index(user_side) if user_side in ["Left", "Right", "Ambidextrous", "Unknown"] else 3)
                                 if st.button("Save", use_container_width=True):
                                     supabase.table("roster").update({"True Side": new_side}).eq("Name", user_name).execute()

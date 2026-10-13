@@ -251,6 +251,36 @@ st.markdown("""
         border-radius: 16px;
     }   
 
+    /* Custom Action Button Colors */
+    /* Green Add Button */
+    div.stFormSubmitButton > button:has-text("Add to Roster") {
+        background-color: #00e676 !important;
+        color: #0e1117 !important;
+        font-weight: 700 !important;
+    }
+    div.stFormSubmitButton > button:has-text("Add to Roster"):hover {
+        background-color: #00c853 !important;
+    }
+
+    /* Blue Save Changes Button */
+    div.stFormSubmitButton > button:has-text("Save Changes") {
+        background-color: #4dabf7 !important;
+        color: #0e1117 !important;
+        font-weight: 700 !important;
+    }
+    div.stFormSubmitButton > button:has-text("Save Changes"):hover {
+        background-color: #339af0 !important;
+    }
+
+    /* Red Delete Button */
+    div.stFormSubmitButton > button:has-text("Delete") {
+        background-color: #ff3333 !important;
+        color: white !important;
+        font-weight: 700 !important;
+    }
+    div.stFormSubmitButton > button:has-text("Delete"):hover {
+        background-color: #e02828 !important;
+    }
 
 </style>
 """, unsafe_allow_html=True)
@@ -1019,7 +1049,6 @@ elif st.session_state.page == "Admin":
             st.markdown("### Manage Roster")
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # Create a 2-column layout to place Adding on the left and Editing on the right
             col_add, col_edit = st.columns(2, gap="large")
 
             # --- LEFT COLUMN: ADD NEW PADDLER ---
@@ -1039,6 +1068,7 @@ elif st.session_state.page == "Admin":
                         ], index=4)
                             
                         st.markdown("<br>", unsafe_allow_html=True)
+                        # This button will now render in Green automatically
                         if st.form_submit_button("Add to Roster", use_container_width=True):
                             if new_name.strip() == "":
                                 st.error("Please enter a valid name.")
@@ -1065,7 +1095,6 @@ elif st.session_state.page == "Admin":
                 with st.container(border=True):
                     st.markdown("#### ✏️ Edit or Remove Paddler")
                     
-                    # Search bar integrated directly as the selection mechanism
                     all_roster_names = sorted(df_roster['Name'].tolist()) if not df_roster.empty else []
                     edit_name = st.selectbox("Search / Select Paddler", all_roster_names, index=None, placeholder="Type a name to search...")
                     
@@ -1097,11 +1126,12 @@ elif st.session_state.page == "Admin":
                                 
                             st.markdown("<br>", unsafe_allow_html=True)
                             
-                            # Place Save Changes and Delete side-by-side inside the form container
                             b_col1, b_col2 = st.columns(2)
                             with b_col1:
+                                # Renders in Blue
                                 save_submitted = st.form_submit_button("💾 Save Changes", use_container_width=True)
                             with b_col2:
+                                # Renders in Red
                                 delete_requested = st.form_submit_button("🗑️ Delete", use_container_width=True)
 
                             if save_submitted:
@@ -1139,7 +1169,6 @@ elif st.session_state.page == "Admin":
                                 st.rerun()
                     else:
                         st.info("Select a paddler above to edit details or delete.")
-
         with admin_tab5:
             st.markdown("### Financial & Waiver Tracking")
             st.markdown("Check the boxes for completed waivers and use the dropdowns to track payments. Click Save when finished.")

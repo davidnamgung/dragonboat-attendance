@@ -417,7 +417,7 @@ def render_card_header(ts_string):
     match = re.match(r"(.*?)\s+(\d{1,2}:\d{2}\s*[AP]M\s*-\s*\d{1,2}:\d{2}\s*[AP]M)\s*\[(.*?)\]", ts_string)
     
     if match:
-        date_val = match.group(1)
+        date_val = match.group(1).upper() # Converts "Thursday, October 8th" to uppercase
         time_val = match.group(2)
         type_val = match.group(3).upper()
         
@@ -1329,12 +1329,14 @@ elif st.session_state.page == "Sign Up":
                     # Helper function to append readable training tags to the radio buttons
                     def get_display_label(ts):
                         if "Thursday" in ts and "7:00 PM" in ts:
-                            return f"{ts} — [Intermediate / Advanced]"
+                            label = f"{ts} — [Intermediate / Advanced]"
                         elif "Friday" in ts and "6:00 PM" in ts:
-                            return f"{ts} — [Beginner-Friendly / Back-To-Basics]"
+                            label = f"{ts} — [Beginner-Friendly / Back-To-Basics]"
                         elif "Friday" in ts and "5:00 PM" in ts:
-                            return f"{ts} — [For All]"
-                        return ts
+                            label = f"{ts} — [For All]"
+                        else:
+                            label = ts
+                        return label.upper()
 
                     display_to_original = {get_display_label(ts): ts for ts in available_timeslots}
                     selected_display = st.radio("Select Practice:", list(display_to_original.keys()))

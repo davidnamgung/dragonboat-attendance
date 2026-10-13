@@ -1353,12 +1353,12 @@ elif st.session_state.page == "Sign Up":
     
     if now < deadline_dt:
         reminder_content = """
-        <strong>Action Required:</strong> Please ensure your <strong style="color: #4dabf7;">mandatory waiver</strong> and <strong style="color: #4dabf7;">payment</strong> are completed by <strong>October 22nd</strong>.
+        📣 <strong>Action Required:</strong> Please ensure your <strong style="color: #4dabf7;">mandatory waiver</strong> and <strong style="color: #4dabf7;">payment</strong> are completed by <strong>October 22nd</strong>.
         """
         text_color = "#e0e0e0"
     else:
         reminder_content = """
-        <strong>Notice:</strong> No new reminders for this week.
+        📣 <strong>Notice:</strong> No new reminders for this week.
         """
         text_color = "#a0a0a5"
 

@@ -1395,40 +1395,6 @@ elif st.session_state.page == "Admin":
                             st.toast("Announcement saved successfully!", icon="💾")
                             st.rerun()
                         st.markdown('</div>', unsafe_allow_html=True)
-                    new_msg = st.text_area("Active Reminder Message (HTML/Markdown)", value=curr_msg, height=120)
-                    
-                    c1, c2 = st.columns(2)
-                    with c1:
-                        new_date = st.date_input("Deadline Date", value=curr_deadline.date())
-                    with c2:
-                        new_time = st.time_input("Deadline Time", value=curr_deadline.time())
-                        
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    
-                    # Injecting blue button style for Save Announcement
-                    st.markdown("""
-                    <style>
-                        div.ann-btn button { background-color: #4dabf7 !important; color: #0e1117 !important; font-weight: 700 !important; }
-                        div.ann-btn button:hover { background-color: #339af0 !important; }
-                    </style>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown('<div class="ann-btn">', unsafe_allow_html=True)
-                    if st.form_submit_button("💾 Save Announcement", use_container_width=True):
-                        combined_dt = datetime.combine(new_date, new_time)
-                        loc_dt = tz.localize(combined_dt)
-                        
-                        # Use update instead of upsert to avoid primary key conflict errors
-                        supabase.table("announcements").update({
-                            "message": new_msg,
-                            "deadline": loc_dt.isoformat()
-                        }).eq("id", 1).execute()
-                        
-                        log_action("Announcement Updated", "Admin modified the global portal reminder.")
-                        load_announcement.clear()
-                        st.toast("Announcement saved successfully!", icon="💾")
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- 8. PAGE 4: MAIN SIGN UP (FRAGMENTED) ---
 elif st.session_state.page == "Sign Up":

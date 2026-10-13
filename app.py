@@ -1351,7 +1351,12 @@ elif st.session_state.page == "Sign Up":
                                     (is_pool and eff_side == 'Left' and current_left >= 16) or \
                                     (is_pool and eff_side == 'Right' and current_right >= 16)
                             
-                        if st.button("Confirm Attendance", use_container_width=True):
+                        # Centered column layout to constrain the confirmation button width
+                        b_c1, b_c2, b_c3 = st.columns([1, 2, 1])
+                        with b_c2:
+                            confirm_clicked = st.button("Confirm Attendance", use_container_width=True)
+
+                        if confirm_clicked:
                             if boat_full:
                                 supabase.table("waitlist").insert({"Practice Date": timeslot, "Name": user_name, "Side": user_side, "Status": "Waiting"}).execute()
                                 log_action("Joined Waitlist", f"{user_name} joined the waitlist for {timeslot}")

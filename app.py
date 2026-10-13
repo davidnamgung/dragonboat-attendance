@@ -1260,24 +1260,25 @@ elif st.session_state.page == "Sign Up":
                 user_membership = str(user_data.get('Membership', 'Unknown')).strip()
                 user_eff_side = 'Left' if user_side in ['Unknown', 'Ambidextrous'] else user_side
                 
-                # Add vertical_alignment="center" to perfectly align the card with the update button
-                col1, col2 = st.columns([3, 1], vertical_alignment="center")
-                with col1:
-                    st.markdown(f"""
-                    <div style="background: linear-gradient(135deg, rgba(22, 24, 28, 0.8), rgba(255, 51, 51, 0.05)); backdrop-filter: blur(10px); padding: 20px 25px; border-radius: 16px; border: 1px solid rgba(255, 51, 51, 0.2); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); border-left: 4px solid #ff3333; animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
-                        <div style="color: #ff7a7a; font-size: 0.85rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;">Verified Paddler</div>
-                        <div style="font-family: 'Teko', sans-serif; font-size: 2.8rem; font-weight: 800; color: white; line-height: 1.1;">{user_name}</div>
-                        <div style="color: #a0a0a5; font-size: 1.05rem; margin-top: 6px;"><strong>Tier:</strong> {user_membership} &nbsp;&bull;&nbsp; <strong>Side:</strong> {user_side}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                with col2:
-                    with st.popover("🔄 Update Side", use_container_width=True):
-                        new_side = st.radio("Select your True Side:", ["Left", "Right", "Ambidextrous", "Unknown"], index=["Left", "Right", "Ambidextrous", "Unknown"].index(user_side) if user_side in ["Left", "Right", "Ambidextrous", "Unknown"] else 3)
-                        if st.button("Save", use_container_width=True):
-                            supabase.table("roster").update({"True Side": new_side}).eq("Name", user_name).execute()
-                            log_action("Side Updated", f"{user_name} updated their true side to {new_side}")
-                            load_roster.clear()
-                            st.rerun()
+                # Unified Verified Paddler Card Container with Inner Action Button
+                with st.container(border=True):
+                    card_col1, card_col2 = st.columns([4, 1], vertical_alignment="center")
+                    with card_col1:
+                        st.markdown(f"""
+                        <div style="padding: 5px;">
+                            <div style="color: #ff7a7a; font-size: 0.85rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 2px;">Verified Paddler</div>
+                            <div style="font-family: 'Teko', sans-serif; font-size: 2.6rem; font-weight: 800; color: white; line-height: 1.1; margin-bottom: 4px;">{user_name}</div>
+                            <div style="color: #a0a0a5; font-size: 1.05rem;"><strong>Tier:</strong> {user_membership} &nbsp;&bull;&nbsp; <strong>Side:</strong> <span style="color: #ffffff; font-weight: 600;">{user_side}</span></div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    with card_col2:
+                        with st.popover("🔄 Update Side", use_container_width=True):
+                            new_side = st.radio("Select your True Side:", ["Left", "Right", "Ambidextrous", "Unknown"], index=["Left", "Right", "Ambidextrous", "Unknown"].index(user_side) if user_side in ["Left", "Right", "Ambidextrous", "Unknown"] else 3)
+                            if st.button("Save", use_container_width=True):
+                                supabase.table("roster").update({"True Side": new_side}).eq("Name", user_name).execute()
+                                log_action("Side Updated", f"{user_name} updated their true side to {new_side}")
+                                load_roster.clear()
+                                st.rerun()
                 st.divider()
                 
                 for ts_str in TIMESLOTS.keys():

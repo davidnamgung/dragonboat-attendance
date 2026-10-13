@@ -1325,47 +1325,47 @@ elif st.session_state.page == "Sign Up":
                 
                 if available_timeslots:
                     st.markdown("### Sign Up for a Practice")
-                    st.caption("Select your preferred timeslot below (Limit: 1 pool session + 1 circuit spot per week).")
-                    st.markdown("<br>", unsafe_allow_html=True)
+                    
+                    # --- Emphasized Callout Container for Rules ---
+                    st.markdown("""
+                    <div style="background: rgba(255, 51, 51, 0.05); border: 1px solid rgba(255, 51, 51, 0.3); border-left: 4px solid #ff3333; padding: 12px 18px; border-radius: 10px; margin-bottom: 20px; font-size: 0.95rem; color: #e0e0e0;">
+                        <strong>⚠️ Notice:</strong> Select your preferred timeslot below. <em>Attendance is strictly limited to 1 pool session + 1 circuit spot per week.</em>
+                    </div>
+                    """, unsafe_allow_html=True)
 
-                    # Initialize session state for selected timeslot if not present
                     if "selected_timeslot" not in st.session_state:
                         st.session_state.selected_timeslot = available_timeslots[0]
 
-                    # Center the options using a [1, 3, 1] column layout
                     sc1, sc2, sc3 = st.columns([1, 3, 1])
                     with sc2:
-                        # Build formatted labels for each available slot
                         options_map = {}
                         for ts in available_timeslots:
                             if "Thursday" in ts and "7:00 PM" in ts:
-                                tag = "INTERMEDIATE / ADVANCED"
+                                # Intermediate / Advanced (Soft Red)
+                                tag = '<div style="font-size: 0.8rem; font-weight: 800; color: #ff7a7a; letter-spacing: 1px;">INTERMEDIATE / ADVANCED</div>'
                             elif "Friday" in ts and "6:00 PM" in ts:
-                                tag = "BEGINNER-FRIENDLY / BACK-TO-BASICS"
+                                # Beginner / Back-To-Basics (Green)
+                                tag = '<div style="font-size: 0.8rem; font-weight: 800; color: #00e676; letter-spacing: 1px;">BEGINNER-FRIENDLY / BACK-TO-BASICS</div>'
                             elif "Friday" in ts and "5:00 PM" in ts:
-                                tag = "FOR ALL"
+                                # For All Circuit (Blue)
+                                tag = '<div style="font-size: 0.8rem; font-weight: 800; color: #4dabf7; letter-spacing: 1px;">FOR ALL</div>'
                             else:
-                                tag = "SESSION"
+                                tag = '<div style="font-size: 0.8rem; font-weight: 800; color: #a0a0a5; letter-spacing: 1px;">SESSION</div>'
                             
                             options_map[ts] = tag
 
-                        # Render each timeslot inside its own styled container card
                         selected_ts = st.session_state.selected_timeslot
                         
                         for ts in available_timeslots:
-                            tag_text = options_map[ts]
+                            tag_html = options_map[ts]
                             is_selected = (st.session_state.selected_timeslot == ts)
-                            
-                            # Container styling shifts slightly if selected
-                            border_color = "#ff3333" if is_selected else "rgba(43, 45, 49, 0.8)"
-                            bg_color = "rgba(255, 51, 51, 0.08)" if is_selected else "rgba(22, 24, 28, 0.65)"
                             
                             with st.container(border=True):
                                 col_a, col_b = st.columns([4, 1], vertical_alignment="center")
                                 with col_a:
                                     st.markdown(f"""
                                     <div style="font-weight: 700; color: white; font-size: 1.1rem; margin-bottom: 4px;">{ts.upper()}</div>
-                                    <div style="font-size: 0.8rem; font-weight: 800; color: #ff7a7a; letter-spacing: 1px;">{tag_text}</div>
+                                    {tag_html}
                                     """, unsafe_allow_html=True)
                                 with col_b:
                                     if st.button("Select", key=f"select_{ts}", use_container_width=True):
@@ -1374,8 +1374,6 @@ elif st.session_state.page == "Sign Up":
 
                         timeslot = st.session_state.selected_timeslot
                         target_dt = TIMESLOTS[timeslot]
-                    
-                    target_dt = TIMESLOTS[timeslot]
                     
                     is_circuit = "[Circuit]" in timeslot
                     is_pool = "[Pool]" in timeslot
@@ -1393,7 +1391,11 @@ elif st.session_state.page == "Sign Up":
                     
                     elif is_pool and active_pool_count >= 1:
                         can_signup = False
-                        st.error("🔒 You are already signed up for a pool practice this week. Attendance is strictly limited to one pool session.")
+                        st.markdown("""
+                        <div style="background: rgba(255, 51, 51, 0.08); border: 1px solid rgba(255, 51, 51, 0.3); padding: 12px 16px; border-radius: 10px; color: #ff7a7a; font-size: 0.95rem; text-align: center; margin-bottom: 15px;">
+                            🔒 <strong>Limit Reached:</strong> You are already signed up for a pool practice this week (Max: 1 per week).
+                        </div>
+                        """, unsafe_allow_html=True)
                     
                     if can_signup:
                         ts_active = df_signups[(df_signups['Practice Date'] == timeslot) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()

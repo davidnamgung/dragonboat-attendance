@@ -1540,6 +1540,13 @@ elif st.session_state.page == "Sign Up":
                             ⚠️ Limit: <strong style="color: #ffc107;">1 pool session AND 1 circuit spot</strong> per week.
                         </div>
                         """, unsafe_allow_html=True)
+                        
+                        # --- NEW: Blue Instructional Steps ---
+                        st.markdown("""
+                        <div style="background: rgba(77, 171, 247, 0.08); border: 1px solid rgba(77, 171, 247, 0.3); border-left: 3px solid #4dabf7; padding: 8px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #e0e0e0; text-align: center;">
+                            ℹ️ <strong>Next Steps:</strong> Select a timeslot below, click <strong>Confirm Attendance</strong>, then check the <em>Current Lineups</em> tab to see your name!
+                        </div>
+                        """, unsafe_allow_html=True)
 
                     if "selected_timeslot" not in st.session_state:
                         st.session_state.selected_timeslot = available_timeslots[0]
@@ -1570,14 +1577,21 @@ elif st.session_state.page == "Sign Up":
                             with st.container(border=True):
                                 col_a, col_b = st.columns([4, 1], vertical_alignment="center")
                                 with col_a:
+                                    # Change the title text color to green if selected
+                                    title_color = "#00e676" if is_selected else "white"
                                     st.markdown(f"""
-                                    <div style="font-weight: 700; color: white; font-size: 1.05rem; margin-bottom: 3px;">{ts.upper()}</div>
+                                    <div style="font-weight: 700; color: {title_color}; font-size: 1.05rem; margin-bottom: 3px;">{ts.upper()}</div>
                                     {tag_html}
                                     """, unsafe_allow_html=True)
                                 with col_b:
-                                    if st.button("Select", key=f"select_{ts}", use_container_width=True):
-                                        st.session_state.selected_timeslot = ts
-                                        st.rerun()
+                                    # Swap the button to a green 'Selected' state
+                                    if is_selected:
+                                        st.markdown('<div class="btn-green-hook"></div>', unsafe_allow_html=True)
+                                        st.button("✅ Selected", key=f"select_{ts}", use_container_width=True)
+                                    else:
+                                        if st.button("Select", key=f"select_{ts}", use_container_width=True):
+                                            st.session_state.selected_timeslot = ts
+                                            st.rerun()
 
                         timeslot = st.session_state.selected_timeslot
                         target_dt = TIMESLOTS[timeslot]

@@ -1516,15 +1516,26 @@ elif st.session_state.page == "Sign Up":
                     elif not wl_record.empty:
                         pending_all = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
                         pos = pending_all['Name'].tolist().index(user_name) + 1
-                        st.warning(f"⏳ You are **#{pos}** on the waitlist for **{day_name}**.")
-                        if st.button(f"🚨 Cancel {day_name} Waitlist", key=f"cancel_wl_{ts_str}"):
-                            record_id = int(wl_record.iloc[0]['id'])
-                            supabase.table("waitlist").update({"Status": "Cancelled"}).eq("id", record_id).execute()
-                            log_action("Waitlist Cancelled", f"{user_name} left the waitlist for {day_name}")
-                            
-                            load_live_data.clear()
-                            load_audit_log.clear()
-                            st.rerun()
+                        
+                        # Wrap the waitlist status in the exact same centered column layout
+                        wl_c1, wl_c2, wl_c3 = st.columns([1, 3, 1])
+                        with wl_c2:
+                            col_a, col_b = st.columns([3, 1], vertical_alignment="center")
+                            with col_a:
+                                st.markdown(f"""
+                                <div style="background: rgba(255, 193, 7, 0.08); border: 1px solid rgba(255, 193, 7, 0.3); padding: 8px 14px; border-radius: 8px; color: #ffc107; font-size: 0.9rem;">
+                                    ⏳ Waitlisted <strong>#{pos}</strong> for <strong>{day_name}</strong>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            with col_b:
+                                if st.button(f"🚨 Cancel Waitlist", key=f"cancel_wl_{ts_str}", use_container_width=True):
+                                    record_id = int(wl_record.iloc[0]['id'])
+                                    supabase.table("waitlist").update({"Status": "Cancelled"}).eq("id", record_id).execute()
+                                    log_action("Waitlist Cancelled", f"{user_name} left the waitlist for {day_name}")
+                                    
+                                    load_live_data.clear()
+                                    load_audit_log.clear()
+                                    st.rerun()
                             
                 st.divider()
                 
@@ -1577,10 +1588,8 @@ elif st.session_state.page == "Sign Up":
                             with st.container(border=True):
                                 col_a, col_b = st.columns([4, 1], vertical_alignment="center")
                                 with col_a:
-                                    # Change the title text color to green if selected
-                                    title_color = "#00e676" if is_selected else "white"
                                     st.markdown(f"""
-                                    <div style="font-weight: 700; color: {title_color}; font-size: 1.05rem; margin-bottom: 3px;">{ts.upper()}</div>
+                                    <div style="font-weight: 700; color: white; font-size: 1.05rem; margin-bottom: 3px;">{ts.upper()}</div>
                                     {tag_html}
                                     """, unsafe_allow_html=True)
                                 with col_b:

@@ -279,6 +279,27 @@ st.markdown("""
         background-color: #e02828 !important;
     }
 
+    /* Minimal Remove Icon Button */
+    .element-container:has(.btn-remove-hook) + .element-container button {
+        background-color: transparent !important;
+        color: #ff7a7a !important;
+        height: 2.2rem !important;
+        width: 2.2rem !important;
+        min-width: 0 !important;
+        padding: 0 !important;
+        border: 1px solid rgba(255, 51, 51, 0.3) !important;
+        animation: none !important;
+        box-shadow: none !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .element-container:has(.btn-remove-hook) + .element-container button:hover {
+        background-color: rgba(255, 51, 51, 0.15) !important;
+        color: #ff3333 !important;
+        border-color: #ff3333 !important;
+    }
+
     /* Streamlit buttons truncate text with an ellipsis on smaller screens */
     .stButton > button {
         font-size: clamp(0.85rem, 1.2vw, 1.1rem) !important;
@@ -955,11 +976,14 @@ elif st.session_state.page == "Admin":
                 ts_active = ts_active.sort_values(by="Name")
                 
                 for i, row in ts_active.iterrows():
-                    col1, col2 = st.columns([8, 1])
+                    # Add vertical_alignment="center" to perfectly align the button with the checkbox text
+                    col1, col2 = st.columns([8, 1], vertical_alignment="center")
                     with col1:
                         is_checked = row['Status'] in ['Active', 'Attended']
                         checkbox_states[row['id']] = st.checkbox(f"{row['Name']} (Current: {row['Status']})", value=is_checked, key=f"chk_{row['id']}_{ts_string}")
                     with col2:
+                        # Insert the new invisible hook before the button
+                        st.markdown('<div class="btn-remove-hook"></div>', unsafe_allow_html=True)
                         if st.button("❌", key=f"rem_{row['id']}_{ts_string}", help=f"Remove {row['Name']} from this session"):
                             # 1. Cancel the user's active status
                             supabase.table("signups").update({"Status": "Cancelled"}).eq("id", row['id']).execute()

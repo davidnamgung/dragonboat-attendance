@@ -1266,9 +1266,9 @@ elif st.session_state.page == "Admin":
             </div>
             """, unsafe_allow_html=True)
                 
-            # Filter and reorder the display columns
-            display_df = df_roster[['Name', 'True Side', 'Gender', 'Membership', 'Waiver', 'Payment']]
-            
+            # Filter, sort alphabetically, and lock index order so st.data_editor state never shifts
+            display_df = df_roster[['Name', 'True Side', 'Gender', 'Membership', 'Waiver', 'Payment']].sort_values(by="Name", ascending=True).reset_index(drop=True)
+
             # Render an interactive, editable table
             edited_roster = st.data_editor(
                 display_df,
@@ -1292,21 +1292,23 @@ elif st.session_state.page == "Admin":
             save_financials = st.button("💾 Save Payment & Waiver Updates", use_container_width=True)
             
             if save_financials:
-                updates_made = False
+                updates_made = []
+                orig_lookup = display_df.set_index('Name').to_dict('index')
                 
-                # Compare the edited table with the original database to find what changed
-                for idx, row in edited_roster.iterrows():
-                    orig_row = display_df.iloc[idx]
+                # Compare by Name instead of positional index
+                for _, row in edited_roster.iterrows():
+                    p_name = row['Name']
+                    orig_row = orig_lookup.get(p_name)
                     
-                    if row['Waiver'] != orig_row['Waiver'] or row['Payment'] != orig_row['Payment']:
+                    if orig_row and (row['Waiver'] != orig_row['Waiver'] or row['Payment'] != orig_row['Payment']):
                         supabase.table("roster").update({
                             "Waiver": bool(row['Waiver']),
                             "Payment": str(row['Payment'])
-                        }).eq("Name", row['Name']).execute()
-                        updates_made = True
+                        }).eq("Name", p_name).execute()
+                        updates_made.append(f"{p_name} (Waiver: {row['Waiver']}, Payment: {row['Payment']})")
                 
                 if updates_made:
-                    log_action("Financials Updated", "Admin modified roster payment/waiver statuses")
+                    log_action("Financials Updated", f"Updated: {', '.join(updates_made)}")
                     load_roster.clear()
                     load_audit_log.clear()
                     st.toast("Financials saved successfully.", icon="💰")

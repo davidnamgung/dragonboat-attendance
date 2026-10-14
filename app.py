@@ -1654,9 +1654,17 @@ elif st.session_state.page == "Sign Up":
                                 except Exception as e:
                                     # If the Supabase trigger rejects it because of a race condition
                                     if 'BOAT_FULL' in str(e):
-                                        supabase.table("waitlist").insert({"Practice Date": timeslot, "Name": user_name, "Side": user_side, "Status": "Waiting"}).execute()
-                                        log_action("Joined Waitlist (Race Condition)", f"{user_name} was rerouted to waitlist for {timeslot}")
-                                        st.warning("Someone just grabbed the very last seat a millisecond before you! You have been automatically placed on the waitlist instead.")
+                                        # Failsafe: Verify the user wasn't actually added to the roster before waitlisting
+                                        verify = supabase.table("signups").select("*").eq("Practice Date", timeslot).eq("Name", user_name).eq("Status", "Active").execute()
+                                        
+                                        if not verify.data:
+                                            supabase.table("waitlist").insert({"Practice Date": timeslot, "Name": user_name, "Side": user_side, "Status": "Waiting"}).execute()
+                                            log_action("Joined Waitlist (Race Condition)", f"{user_name} was rerouted to waitlist for {timeslot}")
+                                            st.warning("Someone just grabbed the very last seat a millisecond before you! You have been automatically placed on the waitlist instead.")
+                                        else:
+                                            # The user actually got the final seat!
+                                            log_action("Signup Confirmed", f"{user_name} registered for {timeslot} (Trigger bypassed)")
+                                            st.balloons()
                                     else:
                                         st.error(f"A database error occurred: {e}")
                                 

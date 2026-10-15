@@ -1583,7 +1583,8 @@ elif st.session_state.page == "Sign Up":
                         </div>
                         """, unsafe_allow_html=True)
 
-                    if "selected_timeslot" not in st.session_state:
+                    # Force the session state to reset if the current selection is no longer available
+                    if "selected_timeslot" not in st.session_state or st.session_state.selected_timeslot not in available_timeslots:
                         st.session_state.selected_timeslot = available_timeslots[0]
 
                     sc1, sc2, sc3 = st.columns([1, 3, 1])

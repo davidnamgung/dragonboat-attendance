@@ -955,7 +955,7 @@ elif st.session_state.page == "Admin":
         with col2:
             pwd = st.text_input("Enter Admin Password", type="password")
             if st.button("Access Dashboard", use_container_width=True):
-                if pwd == "DBZ2026":
+                if pwd == "MDBZsupercrew1":
                     st.session_state.admin_authenticated = True
                     st.rerun()
                 else:

@@ -63,14 +63,13 @@ A password-protected (`st.session_state.admin_authenticated`) executive control 
 
 ## 🚀 Future Roadmap & Potential Enhancements
 
-While this application is actively deployed and strictly scoped to solve McGill Dragon Boat Z's immediate attendance logistics[cite: 12], the architecture provides a foundation for several advanced technical expansions. If scaled beyond a lightweight club utility, future implementations could include:
+While this application is strictly scoped to solve McGill Dragon Boat Z's immediate attendance logistics, the architecture provides a strong foundation for several advanced technical expansions. Future implementations could include:
 
 * **Event-Driven Notifications (Webhooks):** Integrating Discord webhooks or an email API (SendGrid/Resend) to automate alerts. For example, when the system promotes a waitlisted paddler due to a cancellation, it could instantly ping the user to confirm their new active status.
 * **Advanced Authentication & RBAC (Role-Based Access Control):** Transitioning from the current rapid-access dropdown and plaintext admin portal to full Supabase Auth (OAuth or Magic Links). This would enforce strict PostgreSQL Row-Level Security (RLS) and prevent accidental cancellations by teammates.
 * **Algorithmic Boat Lineup Generator:** Expanding the current 16/16 side-balancing algorithm to generate exact seat assignments. By utilizing linear programming (`scipy.optimize`), the app could automatically draft 20-paddler seating charts based on weight distribution, gender ratios, and bench pairing (e.g., Strokes, Engine Room, Rocket).
 * **Automated Data Pipelines & Reporting:** Implementing scheduled cron jobs (`pg_cron` or GitHub Actions) to trigger weekly database snapshots, automatically compiling the attendance and financial data into CSV reports and emailing them to the executive board.
 * **CI/CD & Test Automation:** Extracting core business logic (time-gating, waitlist routing, and ambidextrous balancing) into modular functions covered by `pytest`, utilizing GitHub Actions to automatically run unit tests on every repository push to guarantee production stability.
-
 
 ---
 

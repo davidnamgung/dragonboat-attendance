@@ -454,7 +454,12 @@ with st.sidebar:
     st.header("Navigation")
 
     # --- Quick UI Upgrade: Live Activity Pill ---
-    active_count = len(df_signups[df_signups['Status'].isin(['Active', 'Attended'])]) if not df_signups.empty else 0
+    if not df_signups.empty:
+        current_week_signups = df_signups[df_signups['Practice Date'].isin(TIMESLOTS.keys())]
+        active_count = len(current_week_signups[current_week_signups['Status'].isin(['Active', 'Attended'])])
+    else:
+        active_count = 0
+
     st.markdown(f"""
     <div style="background: rgba(255, 51, 51, 0.08); border: 1px solid rgba(255, 51, 51, 0.2); border-radius: 8px; padding: 8px 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-size: 0.8rem; font-weight: 600; color: #a0a0a5; text-transform: uppercase; letter-spacing: 0.5px;">Active Signups</span>
@@ -635,6 +640,34 @@ if st.session_state.page == "Lineups":
             with cols[idx]:
                 render_card_header(ts_str) 
                 render_roster_card(ts_str, ['Active', 'Attended'])
+
+    if historical_weeks:
+        st.divider()
+        st.markdown("### Historical Lineups")
+        for week_label, dates in historical_weeks.items():
+            with st.expander(f"📅 {week_label}", expanded=False):
+                try:
+                    match = re.search(r'([A-Za-z]+ \d+, \d{4})', week_label)
+                    if match:
+                        hist_monday = datetime.strptime(match.group(1), "%B %d, %Y")
+                        hist_theme = get_weekly_theme(hist_monday)
+                        if hist_theme:
+                            st.markdown(f"""
+                            <div style="text-align: center; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 12px; margin-bottom: 25px;">
+                                <div style="color: #a0a0a5; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px;">Training Theme</div>
+                                <div style="color: #e0e0e0; font-size: 1.15rem; font-weight: 600;">{hist_theme}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                except Exception as e:
+                    pass 
+
+                cols = st.columns(len(dates) if len(dates) > 0 else 1)
+                for idx, past_date in enumerate(dates):
+                    with cols[idx]:
+                        render_card_header(past_date)
+                        render_roster_card(past_date, ['Active', 'Attended'])
+
+        
                 
 # --- 6. PAGE 2: ANALYTICS DASHBOARD ---
 elif st.session_state.page == "Analytics":
@@ -1092,8 +1125,8 @@ elif st.session_state.page == "Admin":
                 cols = st.columns(len(dates) if len(dates) > 0 else 1)
                 for idx, past_date in enumerate(dates):
                     with cols[idx]:
-                        render_card_header(past_date) # Replaces the messy markdown
-                        render_roster_card(past_date, ['Active', 'Attended'])
+                        render_card_header(past_date) 
+                        render_admin_form(past_date)
 
         with admin_tab2:
             st.markdown("### No-Show Tracking")
@@ -1138,12 +1171,13 @@ elif st.session_state.page == "Admin":
                     new_gender = st.selectbox("Gender", ["Open", "Women", "Unknown"], index=2, key="new_paddler_gender")
                     new_side = st.selectbox("True Side", ["Left", "Right", "Ambidextrous", "Unknown"], index=3, key="new_paddler_side")
                     new_mem = st.selectbox("Membership Tier", [
+                        "Fall ONLY (with circuit)",
                         "Fall ONLY (without circuit)", 
                         "BOTH semesters (with circuit)", 
                         "Winter ONLY (without circuit)", 
                         "BOTH semesters (without circuit)",
                         "Unknown"
-                    ], index=4, key="new_paddler_mem")
+                    ], index=5, key="new_paddler_mem")
                         
                     st.markdown("<br>", unsafe_allow_html=True)
                     
@@ -1195,6 +1229,7 @@ elif st.session_state.page == "Admin":
                         upd_side = st.selectbox("True Side", sides, index=sides.index(curr_side), key="upd_paddler_side")
                         
                         mems = [
+                            "Fall ONLY (with circuit)",
                             "Fall ONLY (without circuit)", 
                             "BOTH semesters (with circuit)", 
                             "Winter ONLY (without circuit)", 

@@ -1050,24 +1050,38 @@ elif st.session_state.page == "Admin":
             
             # Sort the available walk-in dropdown names alphabetically 
             available_names = sorted([n for n in all_names if n not in current_names])
-            walkin_name = st.selectbox("➕ Add Walk-In (Optional)", available_names, index=None, placeholder="Select a name to append to today's list...", key=f"walkin_{ts_string}")
             
+            # Place the dropdown and a dedicated Add button side-by-side
+            wc1, wc2 = st.columns([3, 1], vertical_alignment="bottom")
+            with wc1:
+                walkin_name = st.selectbox("➕ Add Walk-In (Optional)", available_names, index=None, placeholder="Select a name to append to today's list...", key=f"walkin_{ts_string}")
+            with wc2:
+                st.markdown('<div class="btn-green-hook"></div>', unsafe_allow_html=True)
+                add_walkin = st.button("Add Walk-In", use_container_width=True, key=f"add_walkin_{ts_string}")
+            
+            # Process the walk-in immediately when the green button is clicked
+            if add_walkin and walkin_name:
+                supabase.table("signups").insert({"Practice Date": ts_string, "Name": walkin_name, "Status": "Attended"}).execute()
+                log_action("Walk-In Added", f"{walkin_name} manually added to {ts_string}")
+                load_live_data.clear()
+                load_audit_log.clear()
+                st.toast(f"{walkin_name} added as a walk-in!", icon="✅")
+                st.rerun()
+            elif add_walkin and not walkin_name:
+                st.error("Please select a name first.")
+                
             st.markdown("<br>", unsafe_allow_html=True)
             
-            # Invisible Hook directly before the button
+            # Invisible Hook directly before the main attendance button
             st.markdown('<div class="btn-blue-hook"></div>', unsafe_allow_html=True)
-            submit_attendance = st.button("Submit Attendance & Walk-Ins", use_container_width=True, key=f"sub_{ts_string}")
+            submit_attendance = st.button("Submit Attendance", use_container_width=True, key=f"sub_{ts_string}")
             
+            # Submitting attendance no longer processes walk-ins
             if submit_attendance:
                 updates_made = False
                 for record_id, is_present in checkbox_states.items():
                     new_status = "Attended" if is_present else "No-Show"
                     supabase.table("signups").update({"Status": new_status}).eq("id", record_id).execute()
-                    updates_made = True
-                    
-                if walkin_name:
-                    supabase.table("signups").insert({"Practice Date": ts_string, "Name": walkin_name, "Status": "Attended"}).execute()
-                    log_action("Walk-In Added", f"{walkin_name} manually added to {ts_string}")
                     updates_made = True
                     
                 if updates_made:

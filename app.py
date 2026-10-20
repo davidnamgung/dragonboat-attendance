@@ -1689,7 +1689,7 @@ elif st.session_state.page == "Sign Up":
                     
                     can_signup = True
                     
-                    if is_circuit and user_membership != 'BOTH semesters (with circuit)':
+                    if is_circuit and user_membership not in ['BOTH semesters (with circuit)', 'Fall ONLY (with circuit)']:
                         can_signup = False
                         st.error("❌ Your current membership tier does not include Circuit Training.")
                     

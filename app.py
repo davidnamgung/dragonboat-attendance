@@ -412,6 +412,11 @@ def load_announcement():
     res = supabase.table("announcements").select("*").eq("id", 1).execute()
     return res.data[0] if res.data else None
 
+@st.cache_data(ttl=60)
+def load_resources():
+    res = supabase.table("resources").select("*").order("id").execute()
+    return pd.DataFrame(res.data) if res.data else pd.DataFrame(columns=["id", "title", "description", "link_url", "button_label"])
+
 def get_week_label(date_str):
     match = re.search(r', ([A-Za-z]+ \d+)', date_str)
     if match:
@@ -975,54 +980,22 @@ elif st.session_state.page == "Resources":
 
     st.divider()
     
-    # 2. Resource Card Grid (Changed from 2 columns to 3 columns)
-    col1, col2, col3 = st.columns(3)
+    df_resources = load_resources()
     
-    with col1:
-        with st.container(border=True):
-            st.markdown("#### ℹ️ Fall 2026 Information Session")
-            st.caption("Missed the Information Session?")
-            st.link_button("Open Slides", "https://canva.link/bj2ock01gq6bp59", use_container_width=True)
-            
-        with st.container(border=True):
-            st.markdown("#### 🩹 Injury Prevention Guide")
-            st.caption("Prevent injuries during the year.")
-            st.link_button("Read Guidelines", "https://docs.google.com/document/d/1VjugbUaSLyP1ChlYMlROkeLu9mJ1FXuyizIRI8bc8-A/edit?usp=sharing", use_container_width=True)
-            
-        with st.container(border=True):
-            st.markdown("#### 🏆 Competition Preparation")
-            st.caption("Preparation docs ahead of any competitions")
-            st.link_button("View Checklists", "https://docs.google.com/document/d/1P-CBhKYLZ1EYMQgBo90BJFmbPkWR780hu3OnCRb_qAM/edit?usp=sharing", use_container_width=True)
-
-    with col2:
-        with st.container(border=True):
-            st.markdown("#### 🚇 Transit Guide")
-            st.caption("How to get to Canal Fitness via Bus and Metro")
-            st.link_button("View Route Map", "https://docs.google.com/document/d/1ip7_Wmi4wuVdmcIbPUp993xwF7i3KOuwKcSp0Wl_yx8/edit?usp=sharing", use_container_width=True)
-            
-        with st.container(border=True):
-            st.markdown("#### 🐉 Dragon Boat 101")
-            st.caption("A guide stating the different teams in Montreal, competitions and our club.")
-            st.link_button("Read Guide", "https://docs.google.com/document/d/1aECu-CS_SJqLzacokfgaGeppBZmYdOYQyNL_TyNtCtk/edit?usp=sharing", use_container_width=True)
-            
-        with st.container(border=True):
-            st.markdown("#### 🎥 YouTube Channel")
-            st.caption("Check out our races!")
-            st.link_button("Watch Videos", "https://www.youtube.com/@mcgilldragonboatz", use_container_width=True)
-
-    with col3:
-        with st.container(border=True):
-            st.markdown("#### ⏱️ DBZ Racing History")
-            st.caption("List of DBZ Races with the times and rankings")
-            st.link_button("View Rankings", "https://docs.google.com/spreadsheets/d/1I4GCgein1PvvQIoD1g4VcViRa6WTIgu1HAwT-JJtNV8/edit?usp=sharing", use_container_width=True)
-            
-        with st.container(border=True):
-            st.markdown("#### 📜 DBZ Management History")
-            st.caption("Documented history of our club.")
-            st.link_button("Read History", "https://docs.google.com/document/d/1OmqWDTVmkPXhYEDlX2H2jxcSyBEvUNy4hFscLRg6ah0/edit?usp=sharing", use_container_width=True)
-
+    if not df_resources.empty:
+        # Render dynamic resources in a neat 3-column grid
+        cols = st.columns(3)
+        for idx, row in df_resources.iterrows():
+            col = cols[idx % 3]
+            with col:
+                with st.container(border=True):
+                    st.markdown(f"#### 🔗 {row['title']}")
+                    st.caption(row['description'])
+                    st.link_button(row['button_label'], row['link_url'], use_container_width=True)
+    else:
+        st.info("No active resources have been posted yet.")
+        
     st.divider()
-    st.info("Additional resources and forms will be populated here as the season progresses.")
 # --- 7. PAGE 3: ADMIN DASHBOARD (FRAGMENTED) ---
 elif st.session_state.page == "Admin":
     if not st.session_state.admin_authenticated:
@@ -1041,7 +1014,7 @@ elif st.session_state.page == "Admin":
         st.markdown('<h1 class="main-title">Admin Dashboard</h1>', unsafe_allow_html=True)
         st.divider()
         
-        admin_tab1, admin_tab2, admin_tab3, admin_tab4, admin_tab5, admin_tab6 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log", "👥 Manage Roster", "💳 Waivers & Payments", "📢 Announcements"])
+        admin_tab1, admin_tab2, admin_tab3, admin_tab4, admin_tab5, admin_tab6, admin_tab7 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log", "👥 Manage Roster", "💳 Waivers & Payments", "📢 Announcements", "🔗 Resources"])
         
         @st.fragment
         def render_admin_form(ts_string):
@@ -1499,6 +1472,102 @@ elif st.session_state.page == "Admin":
                             st.toast("Announcement saved successfully!", icon="💾")
                             st.rerun()
                         st.markdown('</div>', unsafe_allow_html=True)
+
+        with admin_tab7:
+            st.markdown("### Manage Team Resources")
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            df_resources = load_resources()
+            
+            col_add, col_edit = st.columns(2, gap="large")
+
+            # --- LEFT COLUMN: ADD NEW RESOURCE ---
+            with col_add:
+                with st.container(border=True):
+                    st.markdown("#### ➕ Add New Resource")
+                    
+                    new_title = st.text_input("Resource Title", key="new_res_title")
+                    new_desc = st.text_input("Quick Description", key="new_res_desc")
+                    new_url = st.text_input("Destination URL (Include https://)", key="new_res_url")
+                    new_btn = st.text_input("Button Label", value="Open Link", key="new_res_btn")
+                        
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    
+                    st.markdown('<div class="btn-green-hook"></div>', unsafe_allow_html=True)
+                    add_res_clicked = st.button("Publish Resource", use_container_width=True, key="btn_add_res")
+                    
+                    if add_res_clicked:
+                        if not new_title.strip() or not new_url.strip():
+                            st.error("Title and Destination URL are required.")
+                        else:
+                            supabase.table("resources").insert({
+                                "title": new_title.strip(),
+                                "description": new_desc.strip(),
+                                "link_url": new_url.strip(),
+                                "button_label": new_btn.strip()
+                            }).execute()
+                            
+                            log_action("Resource Added", f"Added resource link: {new_title}")
+                            load_resources.clear()
+                            st.toast("Resource published!", icon="✅")
+                            st.rerun()
+
+            # --- RIGHT COLUMN: EDIT OR REMOVE RESOURCE ---
+            with col_edit:
+                with st.container(border=True):
+                    st.markdown("#### ✏️ Edit or Remove Resource")
+                    
+                    if not df_resources.empty:
+                        # Create a lookup dictionary mapping titles to their database IDs
+                        res_lookup = {row['title']: row['id'] for idx, row in df_resources.iterrows()}
+                        
+                        edit_res_title = st.selectbox("Search / Select Resource", list(res_lookup.keys()), index=None, placeholder="Type a title to search...", key="edit_res_search")
+                        
+                        if edit_res_title:
+                            target_id = res_lookup[edit_res_title]
+                            res_data = df_resources[df_resources['id'] == target_id].iloc[0]
+                            
+                            upd_title = st.text_input("Resource Title", value=res_data['title'], key="upd_res_title")
+                            upd_desc = st.text_input("Quick Description", value=res_data.get('description', ''), key="upd_res_desc")
+                            upd_url = st.text_input("Destination URL", value=res_data['link_url'], key="upd_res_url")
+                            upd_btn = st.text_input("Button Label", value=res_data.get('button_label', 'Open Link'), key="upd_res_btn")
+                                
+                            st.markdown("<br>", unsafe_allow_html=True)
+                            
+                            b_col1, b_col2 = st.columns(2)
+                            with b_col1:
+                                st.markdown('<div class="btn-blue-hook"></div>', unsafe_allow_html=True)
+                                save_res = st.button("💾 Save Changes", use_container_width=True, key="btn_save_res")
+                                
+                            with b_col2:
+                                st.markdown('<div class="btn-red-hook"></div>', unsafe_allow_html=True)
+                                delete_res = st.button("🗑️ Delete", use_container_width=True, key="btn_delete_res")
+                            
+                            if save_res:
+                                if not upd_title.strip() or not upd_url.strip():
+                                    st.error("Title and Destination URL are required.")
+                                else:
+                                    supabase.table("resources").update({
+                                        "title": upd_title.strip(),
+                                        "description": upd_desc.strip(),
+                                        "link_url": upd_url.strip(),
+                                        "button_label": upd_btn.strip()
+                                    }).eq("id", target_id).execute()
+                                    
+                                    log_action("Resource Updated", f"Admin updated resource: {upd_title}")
+                                    load_resources.clear()
+                                    st.toast("Resource updated!", icon="💾")
+                                    st.rerun()
+
+                            if delete_res:
+                                supabase.table("resources").delete().eq("id", target_id).execute()
+                                
+                                log_action("Resource Removed", f"Deleted resource: {edit_res_title}")
+                                load_resources.clear()
+                                st.toast("Resource deleted.", icon="🗑️")
+                                st.rerun()
+                    else:
+                        st.info("No active resources available to edit.")
 
 # --- 8. PAGE 4: MAIN SIGN UP (FRAGMENTED) ---
 elif st.session_state.page == "Sign Up":

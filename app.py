@@ -620,7 +620,8 @@ def render_roster_card(ts_str, status_filter=['Active', 'Attended']):
             """, unsafe_allow_html=True)
             
     if not df_waitlist.empty and 'Active' in status_filter: 
-        wl = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
+        # Update the filter to include both active waiters and historically carried-over paddlers
+        wl = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'].isin(['Waiting', 'Carried Over']))].sort_values(by='Timestamp')
         wl_names = wl['Name'].tolist()
         if wl_names:
             st.markdown("**Waitlist:**")

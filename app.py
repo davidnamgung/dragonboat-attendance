@@ -270,6 +270,15 @@ st.markdown("""
         background-color: #339af0 !important;
     }
 
+    .element-container:has(.btn-darkblue-hook) + .element-container button {
+        background-color: #1971c2 !important; /* Rich Dark Blue */
+        color: white !important;
+        border-color: #1864ab !important;
+    }
+    .element-container:has(.btn-darkblue-hook) + .element-container button:hover {
+        background-color: #1864ab !important;
+    }
+
     .element-container:has(.btn-red-hook) + .element-container button {
         background-color: #ff3333 !important;
         color: white !important;
@@ -1072,24 +1081,42 @@ elif st.session_state.page == "Admin":
                 
             st.markdown("<br>", unsafe_allow_html=True)
             
+            # 1. Detect if the session has already been processed
+            already_submitted = any(ts_active['Status'].isin(['Attended', 'No-Show']))
+            
+            # 2. Dynamically set the label and the CSS color hook
+            btn_label = "Update Attendance" if already_submitted else "Submit Attendance"
+            hook_class = "btn-darkblue-hook" if already_submitted else "btn-blue-hook"
+            
             # Invisible Hook directly before the main attendance button
-            st.markdown('<div class="btn-blue-hook"></div>', unsafe_allow_html=True)
-            submit_attendance = st.button("Submit Attendance", use_container_width=True, key=f"sub_{ts_string}")
+            st.markdown(f'<div class="{hook_class}"></div>', unsafe_allow_html=True)
+            submit_attendance = st.button(btn_label, use_container_width=True, key=f"sub_{ts_string}")
             
             # Submitting attendance no longer processes walk-ins
             if submit_attendance:
                 updates_made = False
-                for record_id, is_present in checkbox_states.items():
+                
+                # 3. Only ping the database for records that actually changed
+                for i, row in ts_active.iterrows():
+                    record_id = row['id']
+                    current_status = row['Status']
+                    is_present = checkbox_states[record_id]
+                    
                     new_status = "Attended" if is_present else "No-Show"
-                    supabase.table("signups").update({"Status": new_status}).eq("id", record_id).execute()
-                    updates_made = True
+                    
+                    if current_status != new_status:
+                        supabase.table("signups").update({"Status": new_status}).eq("id", int(record_id)).execute()
+                        updates_made = True
                     
                 if updates_made:
-                    log_action("Attendance Submitted", f"Bulk update processed for {ts_string}")
+                    action_msg = "Attendance Updated" if already_submitted else "Attendance Submitted"
+                    log_action(action_msg, f"Modifications processed for {ts_string}")
                     load_live_data.clear()
                     load_audit_log.clear()
                     st.toast(f"Records updated for {ts_string.split(',')[0]}.", icon="🐉")
                     st.rerun()
+                else:
+                    st.info("No changes were made to the attendance list.")
         
             with st.popover(f"🗑️ Delete {ts_string.split(',')[0]} Data", use_container_width=True):
                 st.error("Permanently delete all records for this date?")

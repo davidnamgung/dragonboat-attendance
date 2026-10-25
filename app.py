@@ -324,7 +324,8 @@ st.markdown("""
 # --- 2. TIME GATE & DYNAMIC DATES ---
 tz = pytz.timezone("America/Toronto")
 now = datetime.now(tz)
-effective_now = now - timedelta(hours=20)
+# Rolls the visual calendar forward every Sunday at 9:00 AM to preview the waitlist carry-overs
+effective_now = now + timedelta(hours=15)
 effective_monday = effective_now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=effective_now.weekday())
 
 thurs_dt = effective_monday + timedelta(days=3, hours=19)

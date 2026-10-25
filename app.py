@@ -1229,10 +1229,11 @@ elif st.session_state.page == "Admin":
                         "Fall ONLY (with circuit)",
                         "Fall ONLY (without circuit)", 
                         "BOTH semesters (with circuit)", 
+                        "Winter ONLY (with circuit)",
                         "Winter ONLY (without circuit)", 
                         "BOTH semesters (without circuit)",
                         "Unknown"
-                    ], index=5, key="new_paddler_mem")
+                    ], index=6, key="new_paddler_mem")
                         
                     st.markdown("<br>", unsafe_allow_html=True)
                     
@@ -1287,6 +1288,7 @@ elif st.session_state.page == "Admin":
                             "Fall ONLY (with circuit)",
                             "Fall ONLY (without circuit)", 
                             "BOTH semesters (with circuit)", 
+                            "Winter ONLY (with circuit)",
                             "Winter ONLY (without circuit)", 
                             "BOTH semesters (without circuit)",
                             "Unknown"
@@ -1826,7 +1828,7 @@ elif st.session_state.page == "Sign Up":
                     
                     can_signup = True
                     
-                    if is_circuit and user_membership not in ['BOTH semesters (with circuit)', 'Fall ONLY (with circuit)']:
+                    if is_circuit and user_membership not in ['BOTH semesters (with circuit)', 'Fall ONLY (with circuit)', 'Winter ONLY (with circuit)']:
                         can_signup = False
                         st.error("❌ Your current membership tier does not include Circuit Training.")
                     

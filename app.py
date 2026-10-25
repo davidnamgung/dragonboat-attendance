@@ -868,29 +868,50 @@ elif st.session_state.page == "Analytics":
                 elif "Friday" in d_str and "[Pool]" in d_str: return "Friday Pool"
                 return "Other"
             
+            # 1. Process Active Signups
             trend_df = active_signups.copy()
             trend_df['Session'] = trend_df['Practice Date'].apply(get_session_type)
+            active_counts = trend_df.groupby(['Practice Date', 'Session']).size().reset_index(name='Paddlers')
+            active_counts['Record Type'] = 'Active Signups'
+            
+            # 2. Process Waitlist Demand (Only counting users who were left stranded 'Waiting')
+            wl_trend = df_waitlist[df_waitlist['Status'] == 'Waiting'].copy() if not df_waitlist.empty else pd.DataFrame()
+            if not wl_trend.empty:
+                wl_trend['Session'] = wl_trend['Practice Date'].apply(get_session_type)
+                wl_counts = wl_trend.groupby(['Practice Date', 'Session']).size().reset_index(name='Paddlers')
+                wl_counts['Record Type'] = 'Waitlist'
+            else:
+                wl_counts = pd.DataFrame(columns=['Practice Date', 'Session', 'Paddlers', 'Record Type'])
+                
+            # 3. Combine Data
+            combined_chart_data = pd.concat([active_counts, wl_counts], ignore_index=True)
             
             valid_sessions = ["Thursday Pool", "Friday Circuit", "Friday Pool"]
-            sessions_available = [s for s in valid_sessions if s in trend_df['Session'].values]
+            sessions_available = [s for s in valid_sessions if s in combined_chart_data['Session'].values]
             
             selected_sessions = st.multiselect("Filter by Session", sessions_available, default=sessions_available)
             
             if selected_sessions:
-                filtered_trend = trend_df[trend_df['Session'].isin(selected_sessions)]
+                filtered_data = combined_chart_data[combined_chart_data['Session'].isin(selected_sessions)]
                 
-                if not filtered_trend.empty:
-                    chart_data = filtered_trend.groupby(['Practice Date', 'Session']).size().reset_index(name='Paddlers')
-                    
-                    # Added interpolate='monotone' for smooth, organic curves instead of sharp angles
-                    chart = alt.Chart(chart_data).mark_line(point=True, strokeWidth=3, interpolate='monotone').encode(
+                if not filtered_data.empty:
+                    # Added strokeDash (solid vs dashed) and opacity (faded) for Waitlist entries
+                    chart = alt.Chart(filtered_data).mark_line(point=True, strokeWidth=3, interpolate='monotone').encode(
                         x=alt.X('Practice Date:N', sort=None, axis=alt.Axis(labelAngle=-45, labelColor='#a0a0a5')),
                         y=alt.Y('Paddlers:Q', axis=alt.Axis(labelColor='#a0a0a5', gridColor='#2b2d31')),
                         color=alt.Color('Session:N', scale=alt.Scale(
                             domain=valid_sessions, 
                             range=["#ff3333", "#6c6f78", "#ff7a7a"]
                         )),
-                        tooltip=['Session', 'Practice Date', 'Paddlers']
+                        strokeDash=alt.StrokeDash('Record Type:N', scale=alt.Scale(
+                            domain=['Active Signups', 'Waitlist'], 
+                            range=[[1, 0], [5, 5]]
+                        )),
+                        opacity=alt.Opacity('Record Type:N', scale=alt.Scale(
+                            domain=['Active Signups', 'Waitlist'], 
+                            range=[1.0, 0.4]
+                        ), legend=None),
+                        tooltip=['Session', 'Record Type', 'Practice Date', 'Paddlers']
                     ).properties(height=350).configure_view(strokeWidth=0).configure_legend(
                         titleColor='#ffffff', labelColor='#a0a0a5', orient='top'
                     )

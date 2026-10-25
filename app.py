@@ -698,14 +698,19 @@ elif st.session_state.page == "Analytics":
     practice_counts = pd.DataFrame(columns=['Practice Date', 'Paddlers'])
     
     if not active_signups.empty:
-        # 2. Split active signups into Pool vs Circuit
-        pool_signups = active_signups[active_signups['Practice Date'].str.contains('[Pool]', regex=False)]
-        circuit_signups = active_signups[active_signups['Practice Date'].str.contains('[Circuit]', regex=False)]
+        # Extract the week label to prevent double-counting multiple practices in the same week
+        tracked_signups = active_signups.copy()
+        tracked_signups['Week'] = tracked_signups['Practice Date'].apply(get_week_label)
         
-        pool_counts = pool_signups['Name'].value_counts().reset_index()
+        # 2. Split active signups into Pool vs Circuit
+        pool_signups = tracked_signups[tracked_signups['Practice Date'].str.contains('[Pool]', regex=False)]
+        circuit_signups = tracked_signups[tracked_signups['Practice Date'].str.contains('[Circuit]', regex=False)]
+        
+        # Count unique weeks attended instead of raw practice rows
+        pool_counts = pool_signups.groupby('Name')['Week'].nunique().reset_index()
         pool_counts.columns = ['Name', 'Pool Practices']
         
-        circuit_counts = circuit_signups['Name'].value_counts().reset_index()
+        circuit_counts = circuit_signups.groupby('Name')['Week'].nunique().reset_index()
         circuit_counts.columns = ['Name', 'Circuit Practices']
         
         practice_counts = active_signups.groupby('Practice Date').size().reset_index(name='Paddlers')
@@ -720,7 +725,7 @@ elif st.session_state.page == "Analytics":
 
     analytics_df = analytics_df.sort_values(by="Name", ascending=True).reset_index(drop=True)
 
-    # 4. Calculate Independent Attendance Rates (Allows >100% via Walk-ins)
+    # 4. Calculate Independent Attendance Rates (Strictly capped at 100% via unique weekly tracking)
     if num_pool_weeks > 0:
         analytics_df['Pool Attendance Rate'] = ((analytics_df['Pool Practices'] / num_pool_weeks) * 100).round(1).astype(str) + '%'
     else:

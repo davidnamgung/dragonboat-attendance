@@ -754,6 +754,12 @@ elif st.session_state.page == "Analytics":
         st.markdown("### Interactive Master Database")
 
         # --- 1. Glassmorphic KPI Summary Cards ---
+        # Filter to capture true waitlist demand: currently waiting + historically unfulfilled (carried over)
+        if not df_waitlist.empty:
+            true_waitlist_count = len(df_waitlist[df_waitlist['Status'].isin(['Waiting', 'Carried Over'])])
+        else:
+            true_waitlist_count = 0
+
         st.markdown(f"""
         <div style="display: flex; gap: 20px; margin-bottom: 25px;">
             <div style="flex: 1; background-color: rgba(22, 24, 28, 0.65); backdrop-filter: blur(12px); padding: 20px; border-radius: 12px; border: 1px solid rgba(43, 45, 49, 0.8); border-left: 4px solid #ff3333; animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
@@ -765,8 +771,8 @@ elif st.session_state.page == "Analytics":
                 <div style="font-family: 'Teko', sans-serif; font-size: 3rem; font-weight: 800; color: white; line-height: 1.1;">{len(active_signups)}</div>
             </div>
             <div style="flex: 1; background-color: rgba(22, 24, 28, 0.65); backdrop-filter: blur(12px); padding: 20px; border-radius: 12px; border: 1px solid rgba(43, 45, 49, 0.8); border-left: 4px solid #ff7a7a; animation: fadeSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
-                <div style="color: #a0a0a5; font-weight: 600; font-size: 0.9rem; text-transform: uppercase;">Waitlist Demand</div>
-                <div style="font-family: 'Teko', sans-serif; font-size: 3rem; font-weight: 800; color: white; line-height: 1.1;">{len(df_waitlist)}</div>
+                <div style="color: #a0a0a5; font-weight: 600; font-size: 0.9rem; text-transform: uppercase;">True Waitlist Demand</div>
+                <div style="font-family: 'Teko', sans-serif; font-size: 3rem; font-weight: 800; color: white; line-height: 1.1;">{true_waitlist_count}</div>
             </div>
         </div>
         """, unsafe_allow_html=True)

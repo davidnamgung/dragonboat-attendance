@@ -888,32 +888,45 @@ elif st.session_state.page == "Analytics":
             
             valid_sessions = ["Thursday Pool", "Friday Pool", "Friday Circuit"]
             
-            # 4. Generate standalone line charts for each session
-            for session_name in valid_sessions:
-                session_data = combined_chart_data[combined_chart_data['Session'] == session_name]
-                
-                if not session_data.empty:
-                    st.markdown(f"<h4 style='color: #e0e0e0; margin-top: 25px; border-bottom: 1px solid #2b2d31; padding-bottom: 8px;'>{session_name}</h4>", unsafe_allow_html=True)
+            # 4. Generate standalone line charts side-by-side
+            c1, c2, c3 = st.columns(3)
+            
+            for col, session_name in zip([c1, c2, c3], valid_sessions):
+                with col:
+                    session_data = combined_chart_data[combined_chart_data['Session'] == session_name]
                     
-                    chart = alt.Chart(session_data).mark_line(point=True, strokeWidth=3, interpolate='monotone').encode(
-                        x=alt.X('Practice Date:N', sort=None, axis=alt.Axis(labelAngle=-45, labelColor='#a0a0a5', title=None)),
-                        y=alt.Y('Paddlers:Q', axis=alt.Axis(labelColor='#a0a0a5', gridColor='#2b2d31', title='Paddlers')),
-                        color=alt.Color('Record Type:N', scale=alt.Scale(
-                            domain=['Active Signups', 'Waitlist'], 
-                            range=["#ff3333", "#ff7a7a"]
-                        ), legend=alt.Legend(title=None, labelColor='#ffffff', orient='top')),
-                        strokeDash=alt.StrokeDash('Record Type:N', scale=alt.Scale(
-                            domain=['Active Signups', 'Waitlist'], 
-                            range=[[1, 0], [5, 5]]
-                        ), legend=None),
-                        opacity=alt.Opacity('Record Type:N', scale=alt.Scale(
-                            domain=['Active Signups', 'Waitlist'], 
-                            range=[1.0, 0.4]
-                        ), legend=None),
-                        tooltip=['Record Type', 'Practice Date', 'Paddlers']
-                    ).properties(height=280).configure_view(strokeWidth=0)
-                    
-                    st.altair_chart(chart, use_container_width=True)
+                    if not session_data.empty:
+                        # Clean, centered header for the square chart
+                        st.markdown(f"<h4 style='color: #e0e0e0; margin-top: 15px; border-bottom: 1px solid #2b2d31; padding-bottom: 8px; font-size: 1.1rem; text-align: center;'>{session_name}</h4>", unsafe_allow_html=True)
+                        
+                        # Reduced height to 300px to form a square inside the column
+                        chart = alt.Chart(session_data).mark_line(point=True, strokeWidth=3, interpolate='monotone').encode(
+                            x=alt.X('Practice Date:N', sort=None, axis=alt.Axis(labelAngle=-45, labelColor='#a0a0a5', title=None)),
+                            y=alt.Y('Paddlers:Q', axis=alt.Axis(labelColor='#a0a0a5', gridColor='#2b2d31', title='Count', tickMinStep=1)),
+                            color=alt.Color('Record Type:N', scale=alt.Scale(
+                                domain=['Active Signups', 'Waitlist'], 
+                                range=["#ff3333", "#ff7a7a"]
+                            ), legend=alt.Legend(title=None, labelColor='#ffffff', orient='top')),
+                            
+                            # Renders Active as solid line [1, 0], Waitlist as dashed line [5, 5]
+                            strokeDash=alt.StrokeDash('Record Type:N', scale=alt.Scale(
+                                domain=['Active Signups', 'Waitlist'], 
+                                range=[[1, 0], [5, 5]]
+                            ), legend=None),
+                            
+                            # Opacity fades the waitlist line (0.4) while keeping active signups solid (1.0)
+                            opacity=alt.Opacity('Record Type:N', scale=alt.Scale(
+                                domain=['Active Signups', 'Waitlist'], 
+                                range=[1.0, 0.4]
+                            ), legend=None),
+                            
+                            tooltip=['Record Type', 'Practice Date', 'Paddlers']
+                        ).properties(height=300).configure_view(strokeWidth=0)
+                        
+                        st.altair_chart(chart, use_container_width=True)
+                    else:
+                        st.markdown(f"<h4 style='color: #a0a0a5; margin-top: 15px; border-bottom: 1px solid #2b2d31; padding-bottom: 8px; font-size: 1.1rem; text-align: center;'>{session_name}</h4>", unsafe_allow_html=True)
+                        st.info("No data yet.")
         else:
             st.markdown("<div class='app-banner'>Not enough data yet. Complete a few practices to see trends!</div>", unsafe_allow_html=True)
 

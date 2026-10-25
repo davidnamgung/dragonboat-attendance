@@ -864,8 +864,8 @@ elif st.session_state.page == "Analytics":
         if not active_signups.empty:
             def get_session_type(d_str):
                 if "Thursday" in d_str: return "Thursday Pool"
-                elif "[Circuit]" in d_str: return "Friday Circuit"
                 elif "Friday" in d_str and "[Pool]" in d_str: return "Friday Pool"
+                elif "[Circuit]" in d_str: return "Friday Circuit"
                 return "Other"
             
             # 1. Process Active Signups
@@ -886,40 +886,34 @@ elif st.session_state.page == "Analytics":
             # 3. Combine Data
             combined_chart_data = pd.concat([active_counts, wl_counts], ignore_index=True)
             
-            valid_sessions = ["Thursday Pool", "Friday Circuit", "Friday Pool"]
-            sessions_available = [s for s in valid_sessions if s in combined_chart_data['Session'].values]
+            valid_sessions = ["Thursday Pool", "Friday Pool", "Friday Circuit"]
             
-            selected_sessions = st.multiselect("Filter by Session", sessions_available, default=sessions_available)
-            
-            if selected_sessions:
-                filtered_data = combined_chart_data[combined_chart_data['Session'].isin(selected_sessions)]
+            # 4. Generate standalone line charts for each session
+            for session_name in valid_sessions:
+                session_data = combined_chart_data[combined_chart_data['Session'] == session_name]
                 
-                if not filtered_data.empty:
-                    # Added strokeDash (solid vs dashed) and opacity (faded) for Waitlist entries
-                    chart = alt.Chart(filtered_data).mark_line(point=True, strokeWidth=3, interpolate='monotone').encode(
-                        x=alt.X('Practice Date:N', sort=None, axis=alt.Axis(labelAngle=-45, labelColor='#a0a0a5')),
-                        y=alt.Y('Paddlers:Q', axis=alt.Axis(labelColor='#a0a0a5', gridColor='#2b2d31')),
-                        color=alt.Color('Session:N', scale=alt.Scale(
-                            domain=valid_sessions, 
-                            range=["#ff3333", "#6c6f78", "#ff7a7a"]
-                        )),
+                if not session_data.empty:
+                    st.markdown(f"<h4 style='color: #e0e0e0; margin-top: 25px; border-bottom: 1px solid #2b2d31; padding-bottom: 8px;'>{session_name}</h4>", unsafe_allow_html=True)
+                    
+                    chart = alt.Chart(session_data).mark_line(point=True, strokeWidth=3, interpolate='monotone').encode(
+                        x=alt.X('Practice Date:N', sort=None, axis=alt.Axis(labelAngle=-45, labelColor='#a0a0a5', title=None)),
+                        y=alt.Y('Paddlers:Q', axis=alt.Axis(labelColor='#a0a0a5', gridColor='#2b2d31', title='Paddlers')),
+                        color=alt.Color('Record Type:N', scale=alt.Scale(
+                            domain=['Active Signups', 'Waitlist'], 
+                            range=["#ff3333", "#ff7a7a"]
+                        ), legend=alt.Legend(title=None, labelColor='#ffffff', orient='top')),
                         strokeDash=alt.StrokeDash('Record Type:N', scale=alt.Scale(
                             domain=['Active Signups', 'Waitlist'], 
                             range=[[1, 0], [5, 5]]
-                        )),
+                        ), legend=None),
                         opacity=alt.Opacity('Record Type:N', scale=alt.Scale(
                             domain=['Active Signups', 'Waitlist'], 
                             range=[1.0, 0.4]
                         ), legend=None),
-                        tooltip=['Session', 'Record Type', 'Practice Date', 'Paddlers']
-                    ).properties(height=350).configure_view(strokeWidth=0).configure_legend(
-                        titleColor='#ffffff', labelColor='#a0a0a5', orient='top'
-                    )
+                        tooltip=['Record Type', 'Practice Date', 'Paddlers']
+                    ).properties(height=280).configure_view(strokeWidth=0)
+                    
                     st.altair_chart(chart, use_container_width=True)
-                else:
-                    st.info("No data available for the selected sessions.")
-            else:
-                st.warning("Please select at least one session to view trends.")
         else:
             st.markdown("<div class='app-banner'>Not enough data yet. Complete a few practices to see trends!</div>", unsafe_allow_html=True)
 

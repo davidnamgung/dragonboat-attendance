@@ -1084,12 +1084,24 @@ elif st.session_state.page == "Admin":
             
             # Process the walk-in immediately when the green button is clicked
             if add_walkin and walkin_name:
-                supabase.table("signups").insert({"Practice Date": ts_string, "Name": walkin_name, "Status": "Attended"}).execute()
-                log_action("Walk-In Added", f"{walkin_name} manually added to {ts_string}")
-                load_live_data.clear()
-                load_audit_log.clear()
-                st.toast(f"{walkin_name} added as a walk-in!", icon="✅")
-                st.rerun()
+                try:
+                    # 1. Insert them directly into the active session
+                    supabase.table("signups").insert({"Practice Date": ts_string, "Name": walkin_name, "Status": "Attended"}).execute()
+                    
+                    # 2. Clean up the waitlist: If they were on the waitlist, mark them as Promoted so they don't show up twice
+                    supabase.table("waitlist").update({"Status": "Promoted"}).eq("Practice Date", ts_string).eq("Name", walkin_name).eq("Status", "Waiting").execute()
+                    
+                    log_action("Walk-In Added", f"{walkin_name} manually added to {ts_string}")
+                    load_live_data.clear()
+                    load_audit_log.clear()
+                    st.toast(f"{walkin_name} added as a walk-in!", icon="✅")
+                    st.rerun()
+                except Exception as e:
+                    # Catch the database capacity trigger rejection and display a friendly UI error
+                    if 'BOAT_FULL' in str(e) or 'capacity' in str(e).lower() or 'constraint' in str(e).lower():
+                        st.error("❌ Cannot add walk-in: The session is already at maximum capacity!")
+                    else:
+                        st.error(f"Database error: {e}")
             elif add_walkin and not walkin_name:
                 st.error("Please select a name first.")
                 

@@ -2078,7 +2078,7 @@ elif st.session_state.page == "Timer":
     _, btn_col, _ = st.columns([1, 1, 1])
     with btn_col:
         st.markdown('<div class="btn-green-hook"></div>', unsafe_allow_html=True)
-        start_timer = st.button("🚀 Start Timer", use_container_width=True)
+        start_timer = st.button("🚀 Load Timer Interface", use_container_width=True)
 
     if start_timer:
         # Pre-format the starting clock based on whether prep time is used
@@ -2086,18 +2086,47 @@ elif st.session_state.page == "Timer":
         start_m, start_s = divmod(start_val, 60)
         formatted_start = f"{start_m:02d}:{start_s:02d}"
 
-        # Full-screen optimized HTML/JS
+        # Full-screen optimized HTML/JS with integrated JavaScript controls and custom CSS buttons
         components.html(
             f"""
+            <style>
+                .timer-btn {{
+                    background-color: transparent;
+                    color: #a0a0a5;
+                    border: 2px solid #2b2d31;
+                    padding: 15px 40px;
+                    border-radius: 12px;
+                    font-family: 'Inter', sans-serif;
+                    font-size: 1.5rem;
+                    font-weight: 800;
+                    cursor: pointer;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    transition: all 0.2s ease;
+                }}
+                .timer-btn:hover {{
+                    border-color: #ff3333;
+                    color: white;
+                    background-color: rgba(255, 51, 51, 0.1);
+                }}
+                #startBtn {{ border-color: #00e676; color: #00e676; }}
+                #startBtn:hover {{ background-color: rgba(0, 230, 118, 0.1); color: white; }}
+            </style>
+            
             <div style="font-family: 'Inter', sans-serif; text-align: center; color: white; background: #0e1117; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 95vh; margin: -8px;">
-                <h2 id="phase" style="margin: 0; font-size: 5rem; text-transform: uppercase; letter-spacing: 4px;"></h2>
+                <h2 id="phase" style="margin: 0; font-size: 7rem; text-transform: uppercase; letter-spacing: 4px;"></h2>
                 
-                <div id="time" style="font-family: 'Teko', sans-serif; font-size: 22rem; font-weight: 800; line-height: 1; margin: 10px 0;">{formatted_start}</div>
+                <div id="time" style="font-family: 'Teko', sans-serif; font-size: 25rem; font-weight: 800; line-height: 1; margin: 10px 0;">{formatted_start}</div>
                 
                 <div style="display: flex; gap: 50px; align-items: center; margin-top: 20px;">
-                    <div id="rounds" style="color: #a0a0a5; font-size: 2.5rem; font-weight: 600; letter-spacing: 1px;">Round 1 / {rounds}</div>
-                    <div style="width: 4px; height: 40px; background-color: #2b2d31; border-radius: 2px;"></div>
-                    <div id="next_phase" style="color: #6c6f78; font-size: 2.5rem; font-weight: 600; letter-spacing: 1px;"></div>
+                    <div id="rounds" style="color: #a0a0a5; font-size: 3rem; font-weight: 600; letter-spacing: 1px;">Round 1 / {rounds}</div>
+                    <div style="width: 4px; height: 50px; background-color: #2b2d31; border-radius: 2px;"></div>
+                    <div id="next_phase" style="color: #6c6f78; font-size: 3rem; font-weight: 600; letter-spacing: 1px;"></div>
+                </div>
+                
+                <div style="display: flex; gap: 20px; margin-top: 50px;">
+                    <button class="timer-btn" id="startBtn" onclick="toggleTimer()">Start</button>
+                    <button class="timer-btn" onclick="resetTimer()">Reset</button>
                 </div>
             </div>
 
@@ -2112,24 +2141,49 @@ elif st.session_state.page == "Timer":
                 let currentRound = 1;
                 let currentPhase = config.prep > 0 ? 'prep' : 'work'; 
                 let timeLeft = config.prep > 0 ? config.prep : config.work; 
-                let timerInterval;
+                let timerInterval = null;
+                let isRunning = false;
 
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                function playBeep(frequency, duration, type='sine') {{
+                
+                // Enhanced boxing bell sound using dual oscillators
+                function playBell() {{
                     if (audioCtx.state === 'suspended') {{ audioCtx.resume(); }}
-                    const oscillator = audioCtx.createOscillator();
+                    
+                    const osc1 = audioCtx.createOscillator();
+                    const osc2 = audioCtx.createOscillator();
                     const gainNode = audioCtx.createGain();
-                    oscillator.type = type;
-                    oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+                    
+                    osc1.type = 'triangle';
+                    osc2.type = 'sine';
+                    osc1.frequency.setValueAtTime(600, audioCtx.currentTime);
+                    osc2.frequency.setValueAtTime(800, audioCtx.currentTime);
                     
                     gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
                     gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
-                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
                     
-                    oscillator.connect(gainNode);
+                    osc1.connect(gainNode);
+                    osc2.connect(gainNode);
                     gainNode.connect(audioCtx.destination);
-                    oscillator.start();
-                    oscillator.stop(audioCtx.currentTime + duration);
+                    
+                    osc1.start(); osc2.start();
+                    osc1.stop(audioCtx.currentTime + 1.5); osc2.stop(audioCtx.currentTime + 1.5);
+                }}
+                
+                function playTick() {{
+                    if (audioCtx.state === 'suspended') {{ audioCtx.resume(); }}
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.1);
                 }}
 
                 function formatTime(seconds) {{
@@ -2164,11 +2218,11 @@ elif st.session_state.page == "Timer":
 
                 function tick() {{
                     if (timeLeft > 0 && timeLeft <= 3) {{
-                        playBeep(440, 0.2); 
+                        playTick(); 
                     }}
 
                     if (timeLeft === 0) {{
-                        playBeep(880, 0.5, 'square'); 
+                        playBell();
                         
                         if (currentPhase === 'prep' || currentPhase === 'rest') {{
                             currentPhase = 'work';
@@ -2176,10 +2230,12 @@ elif st.session_state.page == "Timer":
                         }} else if (currentPhase === 'work') {{
                             if (currentRound >= config.totalRounds) {{
                                 clearInterval(timerInterval);
+                                isRunning = false;
+                                document.getElementById('startBtn').innerText = "DONE";
                                 document.getElementById('phase').innerText = "WORKOUT COMPLETE";
                                 document.getElementById('phase').style.color = "#4dabf7";
                                 document.getElementById('next_phase').innerText = "";
-                                playBeep(880, 0.2); setTimeout(() => playBeep(880, 0.2), 300); setTimeout(() => playBeep(1200, 0.6), 600);
+                                setTimeout(playBell, 400); 
                                 return;
                             }}
                             currentPhase = 'rest';
@@ -2192,8 +2248,41 @@ elif st.session_state.page == "Timer":
                     updateDisplay();
                 }}
 
+                function toggleTimer() {{
+                    if (audioCtx.state === 'suspended') {{ audioCtx.resume(); }}
+                    const btn = document.getElementById('startBtn');
+                    
+                    if (isRunning) {{
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        btn.innerText = "Resume";
+                        btn.style.borderColor = "#ffc107";
+                        btn.style.color = "#ffc107";
+                    }} else {{
+                        timerInterval = setInterval(tick, 1000);
+                        isRunning = true;
+                        btn.innerText = "Pause";
+                        btn.style.borderColor = "#ff3333";
+                        btn.style.color = "#ff3333";
+                    }}
+                }}
+                
+                function resetTimer() {{
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    currentRound = 1;
+                    currentPhase = config.prep > 0 ? 'prep' : 'work'; 
+                    timeLeft = config.prep > 0 ? config.prep : config.work; 
+                    
+                    const btn = document.getElementById('startBtn');
+                    btn.innerText = "Start";
+                    btn.style.borderColor = "#00e676";
+                    btn.style.color = "#00e676";
+                    
+                    updateDisplay();
+                }}
+
                 updateDisplay();
-                timerInterval = setInterval(tick, 1000);
             </script>
             """,
             height=800  

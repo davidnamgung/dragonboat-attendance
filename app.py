@@ -2061,46 +2061,57 @@ elif st.session_state.page == "Timer":
 
     import streamlit.components.v1 as components
     
-    # Configuration UI
-    c1, c2, c3 = st.columns(3)
+    # Configuration UI (Expanded to 4 variables for a true interval timer)
+    c1, c2, c3, c4 = st.columns(4)
     with c1:
-        work_sec = st.number_input("Work Duration (Seconds)", min_value=5, value=40, step=5)
+        prep_sec = st.number_input("Prep Time (sec)", min_value=0, value=10, step=5)
     with c2:
-        rest_sec = st.number_input("Rest Duration (Seconds)", min_value=0, value=20, step=5)
+        work_sec = st.number_input("Work Duration (sec)", min_value=5, value=40, step=5)
     with c3:
+        rest_sec = st.number_input("Rest Duration (sec)", min_value=0, value=20, step=5)
+    with c4:
         rounds = st.number_input("Number of Rounds", min_value=1, value=5)
         
     st.markdown("<br>", unsafe_allow_html=True)
     
-    st.markdown('<div class="btn-green-hook"></div>', unsafe_allow_html=True)
-    start_timer = st.button("🚀 Start Huge Timer", use_container_width=True)
+    # Centered layout to prevent the button from stretching across the screen
+    _, btn_col, _ = st.columns([1, 1, 1])
+    with btn_col:
+        st.markdown('<div class="btn-green-hook"></div>', unsafe_allow_html=True)
+        start_timer = st.button("🚀 Start Timer", use_container_width=True)
 
     if start_timer:
+        # Pre-format the starting clock based on whether prep time is used
+        start_val = prep_sec if prep_sec > 0 else work_sec
+        start_m, start_s = divmod(start_val, 60)
+        formatted_start = f"{start_m:02d}:{start_s:02d}"
+
         # Full-screen optimized HTML/JS
         components.html(
             f"""
             <div style="font-family: 'Inter', sans-serif; text-align: center; color: white; background: #0e1117; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 95vh; margin: -8px;">
-                <h2 id="phase" style="color: #ffc107; margin: 0; font-size: 5rem; text-transform: uppercase; letter-spacing: 4px;">GET READY</h2>
+                <h2 id="phase" style="margin: 0; font-size: 5rem; text-transform: uppercase; letter-spacing: 4px;"></h2>
                 
-                <div id="time" style="font-family: 'Teko', sans-serif; font-size: 22rem; font-weight: 800; line-height: 1; margin: 10px 0;">00:05</div>
+                <div id="time" style="font-family: 'Teko', sans-serif; font-size: 22rem; font-weight: 800; line-height: 1; margin: 10px 0;">{formatted_start}</div>
                 
                 <div style="display: flex; gap: 50px; align-items: center; margin-top: 20px;">
                     <div id="rounds" style="color: #a0a0a5; font-size: 2.5rem; font-weight: 600; letter-spacing: 1px;">Round 1 / {rounds}</div>
                     <div style="width: 4px; height: 40px; background-color: #2b2d31; border-radius: 2px;"></div>
-                    <div id="next_phase" style="color: #6c6f78; font-size: 2.5rem; font-weight: 600; letter-spacing: 1px;">Next: WORK</div>
+                    <div id="next_phase" style="color: #6c6f78; font-size: 2.5rem; font-weight: 600; letter-spacing: 1px;"></div>
                 </div>
             </div>
 
             <script>
                 const config = {{
+                    prep: {prep_sec},
                     work: {work_sec},
                     rest: {rest_sec},
                     totalRounds: {rounds}
                 }};
 
                 let currentRound = 1;
-                let currentPhase = 'prep'; 
-                let timeLeft = 5; 
+                let currentPhase = config.prep > 0 ? 'prep' : 'work'; 
+                let timeLeft = config.prep > 0 ? config.prep : config.work; 
                 let timerInterval;
 
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2185,5 +2196,5 @@ elif st.session_state.page == "Timer":
                 timerInterval = setInterval(tick, 1000);
             </script>
             """,
-            height=800  # Pushes the component height down to match most standard monitors
+            height=800  
         )

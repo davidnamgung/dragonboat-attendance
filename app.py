@@ -1020,7 +1020,7 @@ elif st.session_state.page == "Admin":
         st.markdown('<h1 class="main-title">Admin Dashboard</h1>', unsafe_allow_html=True)
         st.divider()
         
-        admin_tab1, admin_tab2, admin_tab3, admin_tab4, admin_tab5, admin_tab6, admin_tab7 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log", "👥 Manage Roster", "💳 Waivers & Payments", "📢 Announcements", "🔗 Resources"])
+        admin_tab1, admin_tab2, admin_tab3, admin_tab4, admin_tab5, admin_tab6, admin_tab7, admin_tab8 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log", "👥 Manage Roster", "💳 Waivers & Payments", "📢 Announcements", "🔗 Resources", "⏱️ Circuit Timer"])
         
         @st.fragment
         def render_admin_form(ts_string):
@@ -1588,6 +1588,122 @@ elif st.session_state.page == "Admin":
                                 st.rerun()
                     else:
                         st.info("No active resources available to edit.")
+
+        with admin_tab8:
+            st.markdown("### Interactive Circuit Timer")
+            st.markdown("<p style='color: #a0a0a5; font-size: 0.95rem; margin-top: -10px; margin-bottom: 25px;'>Set your parameters below. The timer runs directly in your browser with zero-latency audio cues.</p>", unsafe_allow_html=True)
+            
+            import streamlit.components.v1 as components
+            
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                work_sec = st.number_input("Work Duration (Seconds)", min_value=5, value=40, step=5)
+            with c2:
+                rest_sec = st.number_input("Rest Duration (Seconds)", min_value=0, value=20, step=5)
+            with c3:
+                rounds = st.number_input("Number of Rounds", min_value=1, value=5)
+                
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # Using the green hook for the Start button
+            st.markdown('<div class="btn-green-hook"></div>', unsafe_allow_html=True)
+            start_timer = st.button("🚀 Start Circuit Timer", use_container_width=True)
+
+            if start_timer:
+                # Injecting the JS/HTML directly into the Streamlit app
+                components.html(
+                    f"""
+                    <div style="font-family: 'Inter', sans-serif; text-align: center; color: white; background: rgba(22, 24, 28, 0.85); padding: 40px; border-radius: 16px; border: 1px solid rgba(43, 45, 49, 0.8); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); max-width: 600px; margin: 0 auto;">
+                        <h2 id="phase" style="color: #ffc107; margin: 0; font-size: 2.5rem; text-transform: uppercase; letter-spacing: 2px;">GET READY</h2>
+                        <div id="time" style="font-family: 'Teko', sans-serif; font-size: 8rem; font-weight: 800; line-height: 1; margin: 10px 0;">00:05</div>
+                        <div id="rounds" style="color: #a0a0a5; font-size: 1.5rem; font-weight: 600; letter-spacing: 1px;">Round 1 / {rounds}</div>
+                    </div>
+
+                    <script>
+                        const config = {{
+                            work: {work_sec},
+                            rest: {rest_sec},
+                            totalRounds: {rounds}
+                        }};
+
+                        let currentRound = 1;
+                        let currentPhase = 'prep'; 
+                        let timeLeft = 5; 
+                        let timerInterval;
+
+                        // Synthetic Audio Generator for zero-latency beeps
+                        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        function playBeep(frequency, duration, type='sine') {{
+                            if (audioCtx.state === 'suspended') {{ audioCtx.resume(); }}
+                            const oscillator = audioCtx.createOscillator();
+                            const gainNode = audioCtx.createGain();
+                            oscillator.type = type;
+                            oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+                            
+                            // Prevent clicking sounds with a smooth ramp
+                            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                            gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
+                            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                            
+                            oscillator.connect(gainNode);
+                            gainNode.connect(audioCtx.destination);
+                            oscillator.start();
+                            oscillator.stop(audioCtx.currentTime + duration);
+                        }}
+
+                        function formatTime(seconds) {{
+                            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                            const s = (seconds % 60).toString().padStart(2, '0');
+                            return m + ":" + s;
+                        }}
+
+                        function updateDisplay() {{
+                            document.getElementById('time').innerText = formatTime(timeLeft);
+                            document.getElementById('rounds').innerText = `Round ${{currentRound}} / ${{config.totalRounds}}`;
+                            
+                            const phaseEl = document.getElementById('phase');
+                            if(currentPhase === 'prep') {{ phaseEl.innerText = "GET READY"; phaseEl.style.color = "#ffc107"; }}
+                            else if(currentPhase === 'work') {{ phaseEl.innerText = "WORK"; phaseEl.style.color = "#00e676"; }}
+                            else {{ phaseEl.innerText = "REST"; phaseEl.style.color = "#ff7a7a"; }}
+                        }}
+
+                        function tick() {{
+                            // Play warning beeps at 3, 2, 1
+                            if (timeLeft > 0 && timeLeft <= 3) {{
+                                playBeep(440, 0.2); 
+                            }}
+
+                            if (timeLeft === 0) {{
+                                playBeep(880, 0.5, 'square'); // High beep on transition
+                                
+                                if (currentPhase === 'prep' || currentPhase === 'rest') {{
+                                    currentPhase = 'work';
+                                    timeLeft = config.work;
+                                }} else if (currentPhase === 'work') {{
+                                    if (currentRound >= config.totalRounds) {{
+                                        clearInterval(timerInterval);
+                                        document.getElementById('phase').innerText = "WORKOUT COMPLETE";
+                                        document.getElementById('phase').style.color = "#4dabf7";
+                                        playBeep(880, 0.2); setTimeout(() => playBeep(880, 0.2), 300); setTimeout(() => playBeep(1200, 0.6), 600);
+                                        return;
+                                    }}
+                                    currentPhase = 'rest';
+                                    timeLeft = config.rest;
+                                    currentRound++;
+                                }}
+                            }} else {{
+                                timeLeft--;
+                            }}
+                            updateDisplay();
+                        }}
+
+                        // Start sequence
+                        updateDisplay();
+                        timerInterval = setInterval(tick, 1000);
+                    </script>
+                    """,
+                    height=450
+                )
 
 # --- 8. PAGE 4: MAIN SIGN UP (FRAGMENTED) ---
 elif st.session_state.page == "Sign Up":

@@ -1188,12 +1188,12 @@ elif st.session_state.page == "Admin":
                         except Exception as e:
                             pass # Fails gracefully if date format changes
 
-                # --- Render the Session Columns ---
-                cols = st.columns(len(dates) if len(dates) > 0 else 1)
-                for idx, past_date in enumerate(dates):
-                    with cols[idx]:
-                        render_card_header(past_date) 
-                        render_admin_form(past_date)
+                        # --- Render the Session Columns ---
+                        cols = st.columns(len(dates) if len(dates) > 0 else 1)
+                        for idx, past_date in enumerate(dates):
+                            with cols[idx]:
+                                render_card_header(past_date) 
+                                render_admin_form(past_date)
 
         with admin_tab2:
             st.markdown("### No-Show Tracking")

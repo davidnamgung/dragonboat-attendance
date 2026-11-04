@@ -502,6 +502,14 @@ with st.sidebar:
         st.session_state.current_user = None  
         st.session_state.page = "Resources"
         st.rerun()
+
+    if st.button("Circuit Timer", use_container_width=True):
+        st.session_state.admin_authenticated = False
+        st.session_state.current_user = None  
+        st.session_state.page = "Timer"
+        st.rerun()
+
+
     if st.button("Admin Dashboard", use_container_width=True):
         st.session_state.admin_authenticated = False
         st.session_state.current_user = None  
@@ -1020,7 +1028,7 @@ elif st.session_state.page == "Admin":
         st.markdown('<h1 class="main-title">Admin Dashboard</h1>', unsafe_allow_html=True)
         st.divider()
         
-        admin_tab1, admin_tab2, admin_tab3, admin_tab4, admin_tab5, admin_tab6, admin_tab7, admin_tab8 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log", "👥 Manage Roster", "💳 Waivers & Payments", "📢 Announcements", "🔗 Resources", "⏱️ Circuit Timer"])
+        admin_tab1, admin_tab2, admin_tab3, admin_tab4, admin_tab5, admin_tab6, admin_tab7 = st.tabs(["✅ Confirm Attendance", "🚨 No-Show Log", "📜 Audit Log", "👥 Manage Roster", "💳 Waivers & Payments", "📢 Announcements", "🔗 Resources"])
         
         @st.fragment
         def render_admin_form(ts_string):
@@ -2045,3 +2053,137 @@ elif st.session_state.page == "Sign Up":
                     st.info("You are currently signed up or waitlisted for all available practices this week.")
 
             render_signup_portal(user_name)
+
+# --- 9. PAGE 5: PUBLIC CIRCUIT TIMER ---
+elif st.session_state.page == "Timer":
+    st.markdown('<h1 class="main-title">Circuit Timer</h1>', unsafe_allow_html=True)
+    st.divider()
+
+    import streamlit.components.v1 as components
+    
+    # Configuration UI
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        work_sec = st.number_input("Work Duration (Seconds)", min_value=5, value=40, step=5)
+    with c2:
+        rest_sec = st.number_input("Rest Duration (Seconds)", min_value=0, value=20, step=5)
+    with c3:
+        rounds = st.number_input("Number of Rounds", min_value=1, value=5)
+        
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    st.markdown('<div class="btn-green-hook"></div>', unsafe_allow_html=True)
+    start_timer = st.button("🚀 Start Huge Timer", use_container_width=True)
+
+    if start_timer:
+        # Full-screen optimized HTML/JS
+        components.html(
+            f"""
+            <div style="font-family: 'Inter', sans-serif; text-align: center; color: white; background: #0e1117; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 95vh; margin: -8px;">
+                <h2 id="phase" style="color: #ffc107; margin: 0; font-size: 5rem; text-transform: uppercase; letter-spacing: 4px;">GET READY</h2>
+                
+                <div id="time" style="font-family: 'Teko', sans-serif; font-size: 22rem; font-weight: 800; line-height: 1; margin: 10px 0;">00:05</div>
+                
+                <div style="display: flex; gap: 50px; align-items: center; margin-top: 20px;">
+                    <div id="rounds" style="color: #a0a0a5; font-size: 2.5rem; font-weight: 600; letter-spacing: 1px;">Round 1 / {rounds}</div>
+                    <div style="width: 4px; height: 40px; background-color: #2b2d31; border-radius: 2px;"></div>
+                    <div id="next_phase" style="color: #6c6f78; font-size: 2.5rem; font-weight: 600; letter-spacing: 1px;">Next: WORK</div>
+                </div>
+            </div>
+
+            <script>
+                const config = {{
+                    work: {work_sec},
+                    rest: {rest_sec},
+                    totalRounds: {rounds}
+                }};
+
+                let currentRound = 1;
+                let currentPhase = 'prep'; 
+                let timeLeft = 5; 
+                let timerInterval;
+
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                function playBeep(frequency, duration, type='sine') {{
+                    if (audioCtx.state === 'suspended') {{ audioCtx.resume(); }}
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    oscillator.type = type;
+                    oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.05);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + duration);
+                }}
+
+                function formatTime(seconds) {{
+                    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                    const s = (seconds % 60).toString().padStart(2, '0');
+                    return m + ":" + s;
+                }}
+
+                function updateDisplay() {{
+                    document.getElementById('time').innerText = formatTime(timeLeft);
+                    document.getElementById('rounds').innerText = `Round ${{currentRound}} / ${{config.totalRounds}}`;
+                    
+                    const phaseEl = document.getElementById('phase');
+                    const nextEl = document.getElementById('next_phase');
+                    
+                    if(currentPhase === 'prep') {{ 
+                        phaseEl.innerText = "GET READY"; 
+                        phaseEl.style.color = "#ffc107"; 
+                        nextEl.innerText = "Next: WORK";
+                    }}
+                    else if(currentPhase === 'work') {{ 
+                        phaseEl.innerText = "WORK"; 
+                        phaseEl.style.color = "#00e676"; 
+                        nextEl.innerText = currentRound >= config.totalRounds ? "Next: DONE" : "Next: REST";
+                    }}
+                    else {{ 
+                        phaseEl.innerText = "REST"; 
+                        phaseEl.style.color = "#ff7a7a"; 
+                        nextEl.innerText = "Next: WORK";
+                    }}
+                }}
+
+                function tick() {{
+                    if (timeLeft > 0 && timeLeft <= 3) {{
+                        playBeep(440, 0.2); 
+                    }}
+
+                    if (timeLeft === 0) {{
+                        playBeep(880, 0.5, 'square'); 
+                        
+                        if (currentPhase === 'prep' || currentPhase === 'rest') {{
+                            currentPhase = 'work';
+                            timeLeft = config.work;
+                        }} else if (currentPhase === 'work') {{
+                            if (currentRound >= config.totalRounds) {{
+                                clearInterval(timerInterval);
+                                document.getElementById('phase').innerText = "WORKOUT COMPLETE";
+                                document.getElementById('phase').style.color = "#4dabf7";
+                                document.getElementById('next_phase').innerText = "";
+                                playBeep(880, 0.2); setTimeout(() => playBeep(880, 0.2), 300); setTimeout(() => playBeep(1200, 0.6), 600);
+                                return;
+                            }}
+                            currentPhase = 'rest';
+                            timeLeft = config.rest;
+                            currentRound++;
+                        }}
+                    }} else {{
+                        timeLeft--;
+                    }}
+                    updateDisplay();
+                }}
+
+                updateDisplay();
+                timerInterval = setInterval(tick, 1000);
+            </script>
+            """,
+            height=800  # Pushes the component height down to match most standard monitors
+        )

@@ -1833,23 +1833,28 @@ elif st.session_state.page == "Sign Up":
                                 </div>
                                 """, unsafe_allow_html=True)
                             with col_b:
-                                if st.button(f"🚨 Cancel {day_name} Attendance", key=f"cancel_att_{ts_str}", use_container_width=True):
-                                    record_id = int(active_record.iloc[0]['id'])
-                                    supabase.table("signups").update({"Status": "Cancelled"}).eq("id", record_id).execute()
-                                    log_action("Attendance Cancelled", f"{user_name} cancelled their spot for {day_name}")
-                                    
-                                    if not df_waitlist.empty:
-                                        pending = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
-                                        for idx, row in pending.iterrows():
-                                            if row['Side'] in [user_eff_side, 'Unknown', 'Ambidextrous'] or "[Circuit]" in ts_str:
-                                                supabase.table("waitlist").update({"Status": "Promoted"}).eq("id", int(row['id'])).execute()
-                                                supabase.table("signups").insert({"Practice Date": ts_str, "Name": row['Name'], "Status": "Active"}).execute()
-                                                log_action("Waitlist Promotion", f"{row['Name']} was automatically promoted to Active for {day_name}")
-                                                break
-                                                
-                                    load_live_data.clear()
-                                    load_audit_log.clear()
-                                    st.rerun()
+                                target_dt = TIMESLOTS[ts_str]
+                                # Lock cancellation if within 1 hour of the practice
+                                if now >= target_dt - timedelta(hours=1):
+                                    st.button(f"🔒 Locked ({day_name})", key=f"cancel_att_{ts_str}", disabled=True, use_container_width=True, help="Cancellations are locked 1 hour before practice.")
+                                else:
+                                    if st.button(f"🚨 Cancel {day_name}", key=f"cancel_att_{ts_str}", use_container_width=True):
+                                        record_id = int(active_record.iloc[0]['id'])
+                                        supabase.table("signups").update({"Status": "Cancelled"}).eq("id", record_id).execute()
+                                        log_action("Attendance Cancelled", f"{user_name} cancelled their spot for {day_name}")
+                                        
+                                        if not df_waitlist.empty:
+                                            pending = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
+                                            for idx, row in pending.iterrows():
+                                                if row['Side'] in [user_eff_side, 'Unknown', 'Ambidextrous'] or "[Circuit]" in ts_str:
+                                                    supabase.table("waitlist").update({"Status": "Promoted"}).eq("id", int(row['id'])).execute()
+                                                    supabase.table("signups").insert({"Practice Date": ts_str, "Name": row['Name'], "Status": "Active"}).execute()
+                                                    log_action("Waitlist Promotion", f"{row['Name']} was automatically promoted to Active for {day_name}")
+                                                    break
+                                                    
+                                        load_live_data.clear()
+                                        load_audit_log.clear()
+                                        st.rerun()
                             
                     elif not wl_record.empty:
                         pending_all = df_waitlist[(df_waitlist['Practice Date'] == ts_str) & (df_waitlist['Status'] == 'Waiting')].sort_values(by='Timestamp')
@@ -1866,14 +1871,19 @@ elif st.session_state.page == "Sign Up":
                                 </div>
                                 """, unsafe_allow_html=True)
                             with col_b:
-                                if st.button(f"🚨 Cancel Waitlist", key=f"cancel_wl_{ts_str}", use_container_width=True):
-                                    record_id = int(wl_record.iloc[0]['id'])
-                                    supabase.table("waitlist").update({"Status": "Cancelled"}).eq("id", record_id).execute()
-                                    log_action("Waitlist Cancelled", f"{user_name} left the waitlist for {day_name}")
-                                    
-                                    load_live_data.clear()
-                                    load_audit_log.clear()
-                                    st.rerun()
+                                target_dt = TIMESLOTS[ts_str]
+                                # Lock cancellation if within 1 hour of the practice
+                                if now >= target_dt - timedelta(hours=1):
+                                    st.button(f"🔒 Locked (Waitlist)", key=f"cancel_wl_{ts_str}", disabled=True, use_container_width=True, help="Cancellations are locked 1 hour before practice.")
+                                else:
+                                    if st.button(f"🚨 Cancel Waitlist", key=f"cancel_wl_{ts_str}", use_container_width=True):
+                                        record_id = int(wl_record.iloc[0]['id'])
+                                        supabase.table("waitlist").update({"Status": "Cancelled"}).eq("id", record_id).execute()
+                                        log_action("Waitlist Cancelled", f"{user_name} left the waitlist for {day_name}")
+                                        
+                                        load_live_data.clear()
+                                        load_audit_log.clear()
+                                        st.rerun()
                             
                 st.divider()
                 

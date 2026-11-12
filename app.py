@@ -530,21 +530,11 @@ def render_card_header(ts_string):
         date_val = match.group(1)
         time_val = match.group(2)
         type_val = match.group(3).upper()
-        
-        # Explicitly check each unique timeslot to prevent overlapping rule conditions
-        tier_tag = ""
-        if "[Circuit]" in ts_string:
-            tier_tag = '<div style="display: inline-block; background-color: rgba(77, 171, 247, 0.15); border: 1px solid rgba(77, 171, 247, 0.4); color: #4dabf7; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">For All</div>'
-        elif "7:00 PM" in time_val and "Thursday" in date_val:
-            tier_tag = '<div style="display: inline-block; background-color: rgba(255, 122, 122, 0.15); border: 1px solid rgba(255, 122, 122, 0.4); color: #ff7a7a; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">Intermediate / Advanced</div>'
-        elif "6:00 PM" in time_val and "Friday" in date_val:
-            tier_tag = '<div style="display: inline-block; background-color: rgba(0, 230, 118, 0.15); border: 1px solid rgba(0, 230, 118, 0.4); color: #00e676; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">Beginner-Friendly / Back-To-Basics</div>'
 
         st.markdown(f"""
         <div style="margin-bottom: 15px;">
             <div>
                 <div style="display: inline-block; background-color: rgba(255, 51, 51, 0.15); border: 1px solid rgba(255, 51, 51, 0.5); box-shadow: 0 0 12px rgba(255, 51, 51, 0.3); color: #ff7a7a; padding: 4px 14px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; letter-spacing: 1.5px; margin-bottom: 8px;">{type_val}</div>
-                {tier_tag}
             </div>
             <div style="color: #ffffff; font-weight: 600; font-size: 1.1rem; margin-top: 4px;">{date_val}</div>
             <div style="color: #a0a0a5; font-size: 0.95rem; margin-top: 2px;">{time_val}</div>
@@ -1915,18 +1905,8 @@ elif st.session_state.page == "Sign Up":
                     with sc2:
                         options_map = {}
                         for ts in available_timeslots:
-                            if "[Circuit]" in ts:
-                                # For All Circuit (Blue)
-                                tag = '<div style="font-size: 0.75rem; font-weight: 800; color: #4dabf7; letter-spacing: 1px;">FOR ALL</div>'
-                            elif "Thursday" in ts and "7:00 PM" in ts:
-                                # Intermediate / Advanced (Soft Red)
-                                tag = '<div style="font-size: 0.75rem; font-weight: 800; color: #ff7a7a; letter-spacing: 1px;">INTERMEDIATE / ADVANCED</div>'
-                            elif "Friday" in ts and "6:00 PM" in ts:
-                                # Beginner / Back-To-Basics (Green)
-                                tag = '<div style="font-size: 0.75rem; font-weight: 800; color: #00e676; letter-spacing: 1px;">BEGINNER-FRIENDLY / BACK-TO-BASICS</div>'
-                            else:
-                                tag = '<div style="font-size: 0.75rem; font-weight: 800; color: #a0a0a5; letter-spacing: 1px;">SESSION</div>'
-                            
+                            # Replaced all tier tags with standard SESSION label
+                            tag = '<div style="font-size: 0.75rem; font-weight: 800; color: #a0a0a5; letter-spacing: 1px;">SESSION</div>'
                             options_map[ts] = tag
                         selected_ts = st.session_state.selected_timeslot
                         

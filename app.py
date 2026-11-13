@@ -1947,10 +1947,15 @@ elif st.session_state.page == "Sign Up":
                     is_circuit = "[Circuit]" in timeslot
                     is_pool = "[Pool]" in timeslot
                     
+                    # Fetch both active signups and waitlist entries for the user
                     active_all = df_signups[(df_signups['Name'] == user_name) & (df_signups['Status'].isin(['Active', 'Attended']))] if not df_signups.empty else pd.DataFrame()
-                    current_week_active = [ts for ts in (active_all['Practice Date'].tolist() if not active_all.empty else []) if ts in TIMESLOTS.keys()]
+                    wl_all = df_waitlist[(df_waitlist['Name'] == user_name) & (df_waitlist['Status'] == 'Waiting')] if not df_waitlist.empty else pd.DataFrame()
                     
-                    active_pool_count = len([ts for ts in current_week_active if "[Pool]" in ts])
+                    current_week_active = [ts for ts in (active_all['Practice Date'].tolist() if not active_all.empty else []) if ts in TIMESLOTS.keys()]
+                    current_week_wl = [ts for ts in (wl_all['Practice Date'].tolist() if not wl_all.empty else []) if ts in TIMESLOTS.keys()]
+                    
+                    # Count total pool commitments (Active + Waitlisted)
+                    active_pool_count = len([ts for ts in current_week_active + current_week_wl if "[Pool]" in ts])
                     
                     can_signup = True
                     
@@ -1966,7 +1971,7 @@ elif st.session_state.page == "Sign Up":
                         with warn_c2:
                             st.markdown("""
                             <div style="background: rgba(255, 51, 51, 0.05); border: 1px solid rgba(255, 51, 51, 0.3); border-left: 3px solid #ff3333; padding: 8px 14px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #ff7a7a; text-align: center;">
-                                🔒 <strong>Limit Reached:</strong> 1 pool session max per week (Circuit sign-up still available).
+                                🔒 <strong>Limit Reached:</strong> 1 pool session max per week (including waitlists). Circuit is still available.
                             </div>
                             """, unsafe_allow_html=True)
                     
